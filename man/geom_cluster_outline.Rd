@@ -8,7 +8,7 @@ geom_cluster_outline(mapping = NULL, data = NULL, clusters = NULL,
   grid_size = 160L, cache = TRUE, ..., colour = "#C23B22", linewidth = 0.5,
   linetype = 1, alpha = NA, size = 1.5, shape = 16, stroke = 0.5,
   na.rm = FALSE, show.legend = NA,
-  inherit.aes = TRUE)
+  inherit.aes = TRUE, replicate = FALSE)
 }
 \arguments{
 \item{mapping}{Aesthetic mapping. Supply \code{aes(group = cluster_id)} with
@@ -18,6 +18,9 @@ The point layer may map gene expression to colour.}
 \item{clusters}{Optional original cluster IDs. Default draws all eligible groups.}
 \item{method,bandwidth,mass,grid_size,cache}{Geometry controls documented in
 \code{\link{compute_cluster_outlines}}.}
+\item{replicate}{Allow a separately supplied data table without all facet-key
+columns to repeat in every facet. Defaults to \code{FALSE}; otherwise, a
+faceted plot requires the complete facet keys in that table.}
 \item{...}{Fixed line aesthetics, such as \code{colour}, \code{linewidth}
 or \code{linetype}.}
 \item{colour,linewidth,linetype,alpha}{Fixed stroke colour, line width, line type and transparency.}
@@ -30,7 +33,9 @@ aesthetics.}
 \value{An object that adds the outline layer to a ggplot.}
 \details{Supply full-panel coordinates and group labels for competition. Use
 \code{clusters} to select the displayed paths. The point data and its aesthetic
-mappings remain available to ggplot. Use linear Cartesian axes.}
+mappings remain available to ggplot. An independent layer data table must
+contain every facet-key column unless \code{replicate = TRUE} is intentional.
+Use linear Cartesian axes.}
 \examples{
 library(ggplot2)
 d <- read.csv(system.file("extdata", "pbmc700.csv", package = "ggclusteroutline"))

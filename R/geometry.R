@@ -48,7 +48,13 @@
     all(abs(cross) <= 100 * .Machine$double.eps)
   }
   if (nrow(unique_coordinates) == 2L || collinear(unique_coordinates)) {
-    ordering <- order(unique_coordinates$x, unique_coordinates$y, method = "radix")
+    # Select extremes along the coordinate with the largest span.  Sorting by x
+    # alone can truncate an effectively vertical segment.
+    ordering <- if (diff(range(unique_coordinates$x)) >= diff(range(unique_coordinates$y))) {
+      order(unique_coordinates$x, unique_coordinates$y, method = "radix")
+    } else {
+      order(unique_coordinates$y, unique_coordinates$x, method = "radix")
+    }
     ends <- unique_coordinates[ordering[c(1L, length(ordering))], , drop = FALSE]
     return(data.frame(cluster = cluster, path = path_id, x = ends$x, y = ends$y,
                       type = "segment", stringsAsFactors = FALSE))
@@ -68,6 +74,20 @@
   }, logical(length(x)))
   dim(memberships) <- c(length(x), length(paths))
   memberships
+}
+
+# Apply the polygon even--odd rule without retaining a point-by-ring matrix.
+.outline_even_odd_membership <- function(x, y, paths) {
+  inside <- logical(length(x))
+  for (path in paths) {
+    in_bounds <- which(x >= min(path$x) & x <= max(path$x) & y >= min(path$y) & y <= max(path$y))
+    if (length(in_bounds)) {
+      hits <- sp::point.in.polygon(x[in_bounds], y[in_bounds], path$x, path$y) > 0L
+      hit_index <- in_bounds[hits]
+      inside[hit_index] <- !inside[hit_index]
+    }
+  }
+  inside
 }
 
 .outline_hull <- function(cluster, coordinates, path_id) {
@@ -226,25 +246,28 @@ outline_geometry <- function(x, y, group, clusters, method = c("tight", "territo
     }
     rings <- territory$rings[[id]]
     if (territory$open[[id]] > 0L) {
-      diagnostics[[length(diagnostics)+1L]] <- data.frame(cluster=id,status="open_contour",
-        input_points=nrow(coordinates),paths=0L,assigned_points=0L,unresolved_points=nrow(coordinates),
-        open_paths=territory$open[[id]])
+      info <- data.frame(cluster=id,status="open_contour",input_points=nrow(coordinates),
+        paths=0L,assigned_points=0L,unresolved_points=nrow(coordinates),open_paths=territory$open[[id]])
+      if (method == "territory") info$other_points <- 0L
+      diagnostics[[length(diagnostics)+1L]] <- info
       next
     }
     if (method == "territory") {
       if (!length(rings)) {
         status <- "no_territory"
         diagnostics[[length(diagnostics) + 1L]] <- data.frame(cluster = id, status = status, input_points = nrow(coordinates), paths = 0L,
-          assigned_points = 0L, unresolved_points = nrow(coordinates), open_paths = territory$open[[id]], stringsAsFactors = FALSE)
+          assigned_points = 0L, unresolved_points = nrow(coordinates), other_points = 0L, open_paths = territory$open[[id]], stringsAsFactors = FALSE)
         next
       }
       for (ring in rings) {
         next_path <- next_path + 1L
         rows[[length(rows) + 1L]] <- .outline_path_frame(id, ring, "polygon", next_path)
       }
-      membership <- rowSums(.outline_membership(coordinates$x, coordinates$y, rings)) %% 2L == 1L
+      membership <- .outline_even_odd_membership(x, y, rings)
+      assigned_points <- sum(membership[group_index[[id]]])
+      other_points <- sum(membership) - assigned_points
       diagnostics[[length(diagnostics) + 1L]] <- data.frame(cluster = id, status = "ok", input_points = nrow(coordinates), paths = length(rings),
-        assigned_points = sum(membership), unresolved_points = sum(!membership), open_paths = territory$open[[id]], stringsAsFactors = FALSE)
+        assigned_points = assigned_points, unresolved_points = nrow(coordinates) - assigned_points, other_points = other_points, open_paths = territory$open[[id]], stringsAsFactors = FALSE)
       next
     }
     if (!length(rings)) {

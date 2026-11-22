@@ -18,3 +18,25 @@ for (ix in split(seq_len(nrow(d)),interaction(d$sample,d$batch,sep="|"))) {
   mask <- multi$sample==sub$sample[1L] & multi$batch==sub$batch[1L]
   stopifnot(identical(one$x,multi$x[mask]),identical(one$y,multi$y[mask]))
 }
+
+# Frozen paths identify the rows and geometry columns that produced them.
+origin <- attr(multi, "provenance")
+stopifnot(identical(origin$coordinate_space, "linear Cartesian"),
+          nchar(origin$input_sha256) == 64L,
+          identical(origin$columns$facets, c("sample", "batch")),
+          identical(origin$package_version, as.character(packageVersion("ggclusteroutline"))))
+fingerprint <- function(d) {
+  z <- compute_cluster_outlines(d,"x","y","leiden",clusters="4",component="island",
+                                facets=c("sample","batch"))
+  attr(z, "provenance")$input_sha256
+}
+d$NKG7 <- rev(d$NKG7)
+stopifnot(identical(origin$input_sha256, fingerprint(d)))
+d$sample[1] <- "changed"
+stopifnot(!identical(origin$input_sha256, fingerprint(d)))
+
+# Repeated local path IDs and punctuation in distinct facet tuples stay separate.
+plot <- ggplot2::ggplot(d, ggplot2::aes(x, y)) + ggplot2::geom_point() +
+  geom_cluster_outline(multi) + ggplot2::facet_grid(sample ~ batch)
+built <- ggplot2::ggplot_build(plot)$data[[2]]
+stopifnot(nrow(built) == nrow(multi), length(unique(built$PANEL)) == 4L)

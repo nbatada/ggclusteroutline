@@ -1,7 +1,7 @@
 # Current state · 22 November 2026
 
-**v0.1.0 local release candidate.** The scientist authorized native R implementation and local release preparation. The full-map PBMC feasibility gate passed automatically with two tight hulls, 48/48 own members, zero others, and matching reference area. The package includes a native ggplot2 layer, tested Seurat integration, per-facet paths, small-group glyphs, frozen reuse and a bounded automatic cache.
+The published v0.1.0 audit found silent pooling of cells across facets, truncated near-vertical segments, reordered frozen paths and incomplete territory diagnostics. The scientist authorized a local v0.1.1 patch and repeat release audit. See the [patch ticket](tickets/M1-002.md), [original audit](release/RELEASE_AUDIT_v0.1.0.md) and [decision D014](DECISIONS.md).
 
-The full package check passed on macOS, including all seven installed-package test scripts, examples and the PDF manual. CellStyle remained a read-only external reference. See [validation](release/R-CMD-check.txt), [benchmarks](benchmarks/rc/README.md), and [release steps](release/README.md).
+The original PBMC gate requires two cluster-4 polygons enclosing all 48 assigned members and zero others. The full Yost and NSCLC checks use their original labels, coordinates and reference territory settings. The scientist owns visual acceptance and release approval.
 
-The GitHub workflow is configured. Public repository creation, remote CI, tagging the final GitHub release and publication require explicit approval. The scientist's visual preference is a full-UMAP reference plus tight island-wise bands. General visual performance remains dataset dependent, with abstentions recorded in the geometry diagnostics.
+**Local v0.1.1 candidate verified.** The source archive passed full R CMD check with zero errors, warnings or notes. The repeated full-data audit matched both published territory totals and independently verified other-label inclusion for every label. See the [v0.1.1 audit and measured performance](release/RELEASE_AUDIT_v0.1.1.md). Scientist approval and cross-platform release CI remain pending.

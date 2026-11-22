@@ -1,6 +1,7 @@
 library(ggclusteroutline)
 engine <- getFromNamespace("outline_geometry", "ggclusteroutline")
 membership <- getFromNamespace(".outline_membership", "ggclusteroutline")
+even_odd_membership <- getFromNamespace(".outline_even_odd_membership", "ggclusteroutline")
 
 expect_error <- function(expression) {
   failed <- inherits(try(force(expression), silent = TRUE), "try-error")
@@ -11,6 +12,7 @@ square <- list(x = c(-1, 1, 1, -1, -1), y = c(-1, -1, 1, 1, -1))
 hole <- list(x = c(-.25, .25, .25, -.25, -.25), y = c(-.25, -.25, .25, .25, -.25))
 annulus_membership <- membership(c(0, .75), c(0, 0), list(square, hole))
 stopifnot(identical(rowSums(annulus_membership) %% 2L == 1L, c(FALSE, TRUE)))
+stopifnot(identical(even_odd_membership(c(0, .75), c(0, 0), list(square, hole)), c(FALSE, TRUE)))
 
 points <- data.frame(
   x = c(0, 1, 0, 4, 5, 4, 9, 9),
@@ -23,7 +25,28 @@ stopifnot(identical(unique(tight$type), "segment"), nrow(attr(tight, "diagnostic
 expect_error(engine(points$x, points$y, points$group, c("missing"), method = "tight"))
 expect_error(engine(c(0, NA), c(0, 1), c("a", "a"), "a", method = "tight"))
 constant_territory <- engine(c(0, 0), c(0, 0), c("same", "same"), "same", method = "territory")
-stopifnot(!nrow(constant_territory), identical(attr(constant_territory, "diagnostics")$status, "no_territory"))
+constant_diagnostics <- attr(constant_territory, "diagnostics")
+stopifnot(!nrow(constant_territory), identical(constant_diagnostics$status, "no_territory"),
+          constant_diagnostics$other_points == 0L)
+
+# Segment endpoints must span the dominant (here vertical) coordinate.
+near_vertical <- data.frame(x = c(0, 1e-16, 2e-16), y = c(0, 1, .5), g = "A")
+contains_segment <- function(path, x, y, tolerance = 1e-12) {
+  dx <- path$x[2L] - path$x[1L]
+  dy <- path$y[2L] - path$y[1L]
+  length_squared <- dx^2 + dy^2
+  parameter <- ((x - path$x[1L]) * dx + (y - path$y[1L]) * dy) / length_squared
+  distance <- abs((x - path$x[1L]) * dy - (y - path$y[1L]) * dx) / sqrt(length_squared)
+  parameter >= -tolerance & parameter <= 1 + tolerance & distance <= tolerance
+}
+for (method in c("tight", "islands")) {
+  band <- compute_cluster_outlines(near_vertical, "x", "y", "g", method = method,
+                                   bandwidth = 2, cache = FALSE)
+  diagnostics <- attr(band, "diagnostics")
+  stopifnot(identical(band$type, c("segment", "segment")),
+            all(contains_segment(band, near_vertical$x, near_vertical$y)),
+            diagnostics$assigned_points == nrow(near_vertical), diagnostics$unresolved_points == 0L)
+}
 
 fixture <- read.csv(system.file("extdata", "pbmc700.csv", package = "ggclusteroutline"))
 pbmc <- engine(fixture$x, fixture$y, fixture$leiden, "4", method = "territory", mass = .9, grid_size = 160L)

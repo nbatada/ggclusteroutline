@@ -21,3 +21,5 @@ D011 · Architect proposal pending GO. Adapt CellStyle's native R territory geom
 
 D012 · Scientist authorized M1 and local v0.1.0 release preparation, including implementation, feature tests, scaling and documentation. Publication and pushing require a subsequent decision.
 D013 · RC implements territory-seeded tight bands, explicit dominant-region territory, and opt-in occupied-tile all-member bands for cases where strict territory seeds miss members. The manually partitioned PBMC split is an external acceptance fixture. All methods retain original group identity. The in-memory cache is bounded; portable RDS objects support cross-session reuse.
+
+D014 · The scientist authorized the v0.1.1 audit fixes and local requalification. Retain strict tight-mode abstention, the occupied-tile definition and the territory profile. Make the default's measured yield visible, expose other-label territory counts, and correct the verified geometry and facet defects. Release publication requires a separate decision.

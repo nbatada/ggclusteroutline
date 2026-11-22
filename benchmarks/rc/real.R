@@ -45,6 +45,11 @@ write.csv(do.call(rbind,results),file.path(out,paste0(dataset,"-containment.csv"
 write.csv(data.frame(dataset,n=nrow(d),k=length(ids),vertices=nrow(p),cold_s=as.numeric(cold),
                      cached_s=as.numeric(warm)),file.path(out,paste0(dataset,"-timing.csv")),row.names=FALSE)
 summary <- do.call(rbind,results)
+diagnostics <- attr(p, "diagnostics")
+matched <- match(summary$id, diagnostics$cluster)
+stopifnot(!anyNA(matched),
+          all(summary$rc_own == diagnostics$assigned_points[matched]),
+          all(summary$rc_other == diagnostics$other_points[matched]))
 allowed <- if(dataset=="Yost") 1L else 0L
 stopifnot(sum(summary$rc_vs_cellstyle_disagreements)<=allowed,
           sum(summary$ggforce_own)==nrow(d),

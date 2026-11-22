@@ -16,3 +16,5 @@
 ^.*\.Rcheck$
 ^ggclusteroutline_.*\.tar\.gz$
 ^LICENSE\.md$
+^RELEASE_AUDIT_.*\.md$
+^Rplots\.pdf$

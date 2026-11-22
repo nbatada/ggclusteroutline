@@ -42,7 +42,13 @@ The default grid and bandwidth are starting values. Inspect the full map.
 A data frame inheriting from \code{cluster_outlines}, containing original cluster
 keys as character, path identifiers, ordered \code{x} and \code{y} coordinates
 and geometry \code{type}. See \code{attr(result, "diagnostics")} for per-group
-status. A frozen table can be stored using \code{saveRDS()} and drawn using
+status. In territory mode, \code{assigned_points} counts enclosed members and
+\code{other_points} counts enclosed observations with other labels. Counts use
+the even-odd rule across rings. Each ring counts its boundary as inside before
+combining rings. A territory with no drawable ring has zero enclosed cells.
+\code{attr(result, "provenance")} records the package, R, sp and dbscan versions,
+coordinate space, source column names and an order-sensitive SHA-256 digest of
+the geometry inputs. Display columns are excluded. A frozen table can be stored using \code{saveRDS()} and drawn using
 \code{geom_cluster_outline(data = result)}. \code{clear_outline_cache()} clears
 the process-local cache and invisibly returns NULL.
 }

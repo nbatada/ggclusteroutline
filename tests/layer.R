@@ -32,6 +32,75 @@ testthat::test_that("a selected label absent from a facet yields no path there",
   testthat::expect_equal(length(unique(outline_data$PANEL)), 1L)
 })
 
+testthat::test_that("independent live data require complete facet keys unless replicated", {
+  points <- data.frame(
+    x = c(0, 1, 2, 10, 11, 12), y = rep(c(0, 1, 0), 2),
+    leiden = "A", sample = rep(c("left", "right"), each = 3)
+  )
+  keyed_layer <- geom_cluster_outline(
+    ggplot2::aes(group = leiden), data = points, method = "islands"
+  )
+  unkeyed <- points[c("x", "y", "leiden")]
+  unkeyed_layer <- geom_cluster_outline(
+    ggplot2::aes(group = leiden), data = unkeyed, method = "islands"
+  )
+  base <- ggplot2::ggplot(points, ggplot2::aes(x, y))
+  keyed_plots <- list(
+    base + ggplot2::facet_wrap(~sample) + keyed_layer,
+    base + keyed_layer + ggplot2::facet_wrap(~sample)
+  )
+  unkeyed_plots <- list(
+    base + ggplot2::facet_wrap(~sample) + unkeyed_layer,
+    base + unkeyed_layer + ggplot2::facet_wrap(~sample)
+  )
+  for (index in seq_along(keyed_plots)) {
+    built <- ggplot2::ggplot_build(keyed_plots[[index]])
+    ranges <- lapply(split(built$data[[1L]]$x, built$data[[1L]]$PANEL), range)
+    testthat::expect_equal(unname(ranges[[1L]]), c(0, 2))
+    testthat::expect_equal(unname(ranges[[2L]]), c(10, 12))
+    testthat::expect_error(ggplot2::ggplot_build(unkeyed_plots[[index]]), "facet keys")
+  }
+  repeated <- ggplot2::ggplot_build(
+    ggplot2::ggplot(points, ggplot2::aes(x, y)) + ggplot2::facet_wrap(~sample) +
+      geom_cluster_outline(ggplot2::aes(group = leiden), data = unkeyed,
+                           method = "islands", replicate = TRUE)
+  )$data[[1L]]
+  testthat::expect_true(all(vapply(split(repeated$x, repeated$PANEL),
+                                    function(x) identical(range(x), c(0, 12)), logical(1))))
+})
+
+testthat::test_that("live facet validation also checks data functions and partial keys", {
+  points <- data.frame(
+    x = c(0, 1, 2, 10, 11, 12), y = rep(c(0, 1, 0), 2),
+    leiden = "A", sample = rep(c("left", "right"), each = 3), batch = "b1"
+  )
+  plot <- ggplot2::ggplot(points, ggplot2::aes(x, y)) + ggplot2::facet_grid(batch ~ sample)
+  testthat::expect_error(
+    ggplot2::ggplot_build(plot + geom_cluster_outline(
+      ggplot2::aes(group = leiden), data = function(d) d[c("x", "y", "leiden", "sample")],
+      method = "islands"
+    )),
+    "facet keys"
+  )
+
+  calls <- 0L
+  layer <- geom_cluster_outline(
+    ggplot2::aes(group = leiden),
+    data = function(d) { calls <<- calls + 1L; d }, method = "islands"
+  )
+  literal_facet <- ggplot2::ggplot(points, ggplot2::aes(x, y)) +
+    ggplot2::facet_wrap(ggplot2::vars(.data[["sample"]])) + layer
+  testthat::expect_identical(calls, 0L)
+  testthat::expect_silent(ggplot2::ggplot_build(literal_facet))
+  testthat::expect_identical(calls, 1L)
+
+  cuts <- c(-Inf, 5, Inf)
+  external_facet <- ggplot2::ggplot(points, ggplot2::aes(x, y)) +
+    ggplot2::facet_wrap(ggplot2::vars(cut(x, breaks = .env$cuts))) +
+    geom_cluster_outline(ggplot2::aes(group = leiden), method = "islands")
+  testthat::expect_silent(ggplot2::ggplot_build(external_facet))
+})
+
 testthat::test_that("frozen paths use fixed outline styling", {
   points <- data.frame(
     x = c(-1, 0, 1, -1, 0, 1),
@@ -76,6 +145,37 @@ testthat::test_that("frozen paths require and retain facet keys", {
     ),
     "matching facet keys"
   )
+  dropped_key <- keyed
+  dropped_key$sample <- NULL
+  testthat::expect_error(geom_cluster_outline(dropped_key), "missing facet keys")
+  aliased <- ggplot2::ggplot(points, ggplot2::aes(x, y)) +
+    ggplot2::facet_wrap(ggplot2::vars(panel = sample)) + geom_cluster_outline(keyed)
+  testthat::expect_silent(ggplot2::ggplot_build(aliased))
+  transformed <- ggplot2::ggplot(points, ggplot2::aes(x, y)) +
+    ggplot2::facet_wrap(ggplot2::vars(panel = substr(sample, 1L, 1L))) + geom_cluster_outline(keyed)
+  testthat::expect_error(ggplot2::ggplot_build(transformed), "matching facet keys")
+})
+
+testthat::test_that("frozen paths use stored vertex order", {
+  frozen <- structure(
+    data.frame(
+      cluster = "a", path = 1L,
+      x = c(0, 1, 1, 0, 0), y = c(0, 1, 0, 1, 0),
+      type = "polygon", vertex = c(1L, 3L, 2L, 4L, 5L)
+    ),
+    class = c("cluster_outlines", "data.frame")
+  )
+  built <- ggplot2::ggplot_build(ggplot2::ggplot() + geom_cluster_outline(frozen))$data[[1L]]
+  testthat::expect_equal(built$x, c(0, 1, 1, 0, 0))
+  testthat::expect_equal(built$y, c(0, 0, 1, 1, 0))
+  testthat::expect_identical(built$x[[1L]], built$x[[nrow(built)]])
+  testthat::expect_identical(built$y[[1L]], built$y[[nrow(built)]])
+
+  duplicate_vertex <- frozen
+  duplicate_vertex$vertex[[2L]] <- 1L
+  testthat::expect_error(geom_cluster_outline(duplicate_vertex), "contiguous unique vertex")
+  open_polygon <- frozen[-5L, ]
+  testthat::expect_error(geom_cluster_outline(open_polygon), "contiguous unique vertex")
 })
 
 testthat::test_that("frozen point primitives render together", {
@@ -157,4 +257,12 @@ testthat::test_that("a layer object can be reused with different plot coordinate
   testthat::expect_null(layer$mapping$x)
   testthat::expect_equal(sort(unique(ggplot2::ggplot_build(first)$data[[1]]$x)),sort(d$a))
   testthat::expect_equal(sort(unique(ggplot2::ggplot_build(second)$data[[1]]$x)),sort(d$b))
+})
+
+testthat::test_that("a key supplied only by a sibling layer prevents silent pooling", {
+  d <- data.frame(x = 1:6, y = c(0,1,0,0,1,0), g = "a", visit = rep(c("a","b"), each = 3))
+  p <- ggplot2::ggplot() + ggplot2::geom_point(data = function(...) d, ggplot2::aes(x, y)) +
+    geom_cluster_outline(ggplot2::aes(x, y, group = g), data = d[c("x","y","g")], method = "islands") +
+    ggplot2::facet_wrap(~visit)
+  testthat::expect_error(ggplot2::ggplot_build(p), "facet keys")
 })

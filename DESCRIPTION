@@ -1,7 +1,7 @@
 Package: ggclusteroutline
 Type: Package
 Title: Outline Labelled Point Clusters in Two-Dimensional Embeddings
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c(person("Nizar", "Batada", email = "nizar.batada@gmail.com", role = c("aut", "cre")),
     person("CellStyle contributors", role = "cph"))
 Description: Add tight component envelopes or locally dominant density regions

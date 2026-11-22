@@ -22,3 +22,19 @@ g <- expand.grid(x=seq(-1,1,length.out=8),y=seq(-1,1,length.out=8))
 mix <- rbind(transform(g,id="B"),transform(g,id="A"))
 p <- suppressWarnings(compute_cluster_outlines(mix,"x","y","id",method="territory"))
 stopifnot(identical(unique(p$cluster),"A"), attr(p,"diagnostics")$paths[1L]>0L,attr(p,"diagnostics")$paths[2L]==0L)
+
+# Territory diagnostics count other labels under the same even--odd rule used
+# for holes, independently checked with sp's point-in-polygon result.
+set.seed(293)
+a <- data.frame(x = rnorm(400, 0, .4), y = rnorm(400, 0, .4), id = "A")
+overlap <- rbind(a, transform(a[seq_len(60L), ], x = x + .3, id = "B"))
+territory <- suppressWarnings(compute_cluster_outlines(overlap, "x", "y", "id", clusters = "A",
+                                                        method = "territory", cache = FALSE))
+paths <- split(territory, territory$path)
+other_inside <- Reduce(xor, lapply(paths, function(path) {
+  sp::point.in.polygon(overlap$x[overlap$id == "B"], overlap$y[overlap$id == "B"], path$x, path$y) > 0L
+}))
+diagnostics <- attr(territory, "diagnostics")
+stopifnot(diagnostics$status == "ok", diagnostics$other_points == sum(other_inside),
+          diagnostics$assigned_points == 369L, diagnostics$other_points == 41L,
+          attr(p,"diagnostics")$other_points[2L] == 0L)

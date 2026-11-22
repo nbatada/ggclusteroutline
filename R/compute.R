@@ -69,15 +69,28 @@ compute_cluster_outlines <- function(data, x, y, group, clusters = NULL,
       stop("Each observation needs a component ID.", call. = FALSE)
     parts <- as.character(parts)
   }
+  facet_data <- NULL
   if (!is.null(facets)) {
     reserved <- c("cluster","path","x","y","type","component","vertex","hole","PANEL","group",
-                  "status","input_points","paths","assigned_points","unresolved_points","open_paths")
+                  "status","input_points","paths","assigned_points","unresolved_points","open_paths","other_points")
     if (!is.character(facets) || !length(facets) || anyDuplicated(facets) ||
         !all(vapply(facets,valid_field,logical(1))) || any(facets %in% reserved))
       stop("Supply distinct facet column names separate from output geometry fields.",call.=FALSE)
     facet_data <- data[facets]
     if (anyNA(facet_data) || !all(vapply(facet_data,function(v) is.atomic(v) && is.null(dim(v)),logical(1))))
       stop("Facet keys must be complete scalar values.",call.=FALSE)
+  }
+  columns <- list(x = x, y = y, group = group, component = component, facets = facets)
+  input_sha256 <- digest::digest(list(xx, yy, labels, parts, as.list(facet_data)),
+                                 algo = "sha256", serializeVersion = 2L)
+  provenance <- list(
+    package_version = as.character(utils::packageVersion("ggclusteroutline")),
+    coordinate_space = "linear Cartesian", columns = columns, input_sha256 = input_sha256,
+    r_version = as.character(getRversion()),
+    sp_version = as.character(utils::packageVersion("sp")),
+    dbscan_version = as.character(utils::packageVersion("dbscan"))
+  )
+  if (!is.null(facets)) {
     # Integer keys prevent collisions when original strings contain separators.
     keys <- lapply(facet_data,function(v) match(v,unique(v)))
     panel <- do.call(interaction,c(unname(as.list(keys)),list(drop=TRUE)))
@@ -97,12 +110,13 @@ compute_cluster_outlines <- function(data, x, y, group, clusters = NULL,
     class(result) <- c("cluster_outlines","data.frame")
     attr(result,"diagnostics") <- do.call(rbind,diagnostics)
     attr(result,"settings") <- settings
+    attr(result,"provenance") <- provenance
     attr(result,"facet_keys") <- facets
     attr(result,"method") <- method
     return(result)
   }
   if (cache) {
-    key <- digest::digest(list("0.1.0-geometry-1",xx,yy,labels,parts,clusters,method,bandwidth,mass,grid_size),
+    key <- digest::digest(list(provenance,clusters,method,bandwidth,mass,grid_size),
                           algo = "sha256")
     if (exists(key, envir = .outline_cache, inherits = FALSE)) {
       .outline_cache$order <- c(.outline_cache$order[.outline_cache$order != key], key)
@@ -134,6 +148,7 @@ compute_cluster_outlines <- function(data, x, y, group, clusters = NULL,
   } else integer()
   class(result) <- c("cluster_outlines", "data.frame")
   attr(result,"method") <- method
+  attr(result,"provenance") <- provenance
   if (cache) cache_result(key, result)
   report_outline_status(result)
 }
