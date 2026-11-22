@@ -1,0 +1,42 @@
+"case","method","status","warning","error","empty_output"
+"one_point","convex","rendered","","","unknown"
+"one_point","ggforce","rendered","","","unknown"
+"one_point","ggalt","rendered","","","unknown"
+"one_point","ggdensity","rendered","Computation failed in `stat_hdr_lines()`.
+Caused by error in `if (any(h <= 0)) ...`:
+! missing value where TRUE/FALSE needed","","TRUE"
+"two_points_oblique","convex","rendered","","","unknown"
+"two_points_oblique","ggforce","rendered","","","unknown"
+"two_points_oblique","ggalt","rendered","","","unknown"
+"two_points_oblique","ggdensity","rendered","","","FALSE"
+"three_points","convex","rendered","","","unknown"
+"three_points","ggforce","rendered","","","unknown"
+"three_points","ggalt","rendered","","","unknown"
+"three_points","ggdensity","rendered","","","FALSE"
+"collinear","convex","rendered","","","unknown"
+"collinear","ggforce","rendered","","","unknown"
+"collinear","ggalt","rendered","","","unknown"
+"collinear","ggdensity","rendered","Computation failed in `stat_hdr_lines()`.
+Caused by error in `MASS::kde2d()`:
+! bandwidths must be strictly positive","","TRUE"
+"duplicates","convex","rendered","","","unknown"
+"duplicates","ggforce","rendered","","","unknown"
+"duplicates","ggalt","rendered","","","unknown"
+"duplicates","ggdensity","rendered","Computation failed in `stat_hdr_lines()`.
+Caused by error in `MASS::kde2d()`:
+! bandwidths must be strictly positive","","TRUE"
+"mixed_na","convex","error","","finite coordinates are needed",NA
+"mixed_na","ggforce","rendered","Removed 1 row containing missing values or values outside the scale range
+(`geom_point()`). | Removed 1 row containing missing values or values outside the scale range
+(`geom_mark_hull()`).","","unknown"
+"mixed_na","ggalt","rendered","Removed 1 row containing missing values or values outside the scale range
+(`geom_point()`). | Removed 1 row containing missing values or values outside the scale range
+(`geom_encircle()`).","","unknown"
+"mixed_na","ggdensity","rendered","Removed 1 row containing non-finite outside the scale range
+(`stat_hdr_lines()`). | Removed 1 row containing missing values or values outside the scale range
+(`geom_point()`).","","FALSE"
+"mixed_inf","convex","error","","finite coordinates are needed",NA
+"mixed_inf","ggforce","rendered","","","unknown"
+"mixed_inf","ggalt","rendered","","","unknown"
+"mixed_inf","ggdensity","rendered","Removed 1 row containing non-finite outside the scale range
+(`stat_hdr_lines()`).","","FALSE"

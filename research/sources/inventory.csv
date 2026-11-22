@@ -1,0 +1,10 @@
+package,cran_index_version,head_version,head_license,upstream,sha,commit_date,archived,open_issues_including_prs,has_testthat_dir,source_sha256
+ggforce,0.5.0,0.5.0.9000,MIT + file LICENSE,thomasp85/ggforce,128001400bee8ae1a27c772b6d9677660db01778,2025-09-15T19:21:20Z,False,78,False,4e67afa8937b0420238e324f7b30714a2a6899b6ac8b919e42adef6fa3d9a07c
+ggalt,absent,0.8.0,MIT + file LICENSE,hrbrmstr/ggalt,7b5e9f98d0afd8c47277e6e96ce152d63b8d3776,2026-05-13T13:35:42Z,False,2,True,4ad06943f97d0698ddc214b94ce70b98df82201efb81b851c47c8fc839101142
+ggdensity,1.0.1,1.0.1,MIT + file LICENSE,jamesotto852/ggdensity,cc94a18d5449bb9072bb9a83b65c8bdfa337810a,2026-02-25T04:03:45Z,False,5,True,d7fb742a2cc33341810c06f946f2b2c683491789147231751f9bab4c7b163e7e
+ggpubr,1.0.0,1.1.0,GPL (>= 2),kassambara/ggpubr,e46af48626049ece687e13ade833cc0ea43c9252,2026-07-31T19:58:24Z,False,10,True,a8998f12ef08ec661bce2dcd855a293f80d9e2fee8e2820cb48808fe088bba69
+ggunchull,absent,1.0.1,GPL3,sajuukLyu/ggunchull,282c549e4b27dc3a58d37e6dafb9e3f0a34de899,2024-05-20T12:00:07Z,False,3,False,61325a2626e03be2e1f10fe4a7f80cf0c16b28fe161f2d6e0ac9f56cd8ed3139
+concaveman,1.2.0,1.2.0,GPL-3,joelgombin/concaveman,31d9b19055951ca06e52acd3eadd5bcba36bf680,2025-10-06T11:14:27Z,False,8,True,7621c515be26cbf1cf9ac285c7a937b734db1c1784f148120981f371c2108a13
+sf,1.1-3,1.1-4,GPL-2 | MIT + file LICENSE,r-spatial/sf,973b74f7dd57818584ef1817847d9521810a9f97,2026-11-20T07:47:08Z,False,66,True,8fa47b15022f69d99e50a075ebff66a72e5aa929175523a644aeffef8668b831
+isoband,0.3.0,0.3.0.9000,MIT + file LICENSE,r-lib/isoband,35e6671cc2cde999d8e7ed468720473b4d00c839,2025-12-08T07:23:16Z,False,8,True,ec39299716694672455ab85716b409995e96b29118404fa29a733d07b6d2719c
+ggplot2,4.0.4,4.0.4.9000,MIT + file LICENSE,tidyverse/ggplot2,87a95d9103536296c8334e72f9f722855cd16bcb,2026-11-16T10:01:48Z,False,121,True,8f5feccac00796fd7a969dd1f81ac3732da29288cb3d0132247984ea642b9d99

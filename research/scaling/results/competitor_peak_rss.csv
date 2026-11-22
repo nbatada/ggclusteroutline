@@ -1,0 +1,8 @@
+method,n,groups,peak_rss_bytes
+ggforce::geom_mark_hull,10000,1,208273408
+ggforce::geom_mark_hull,10000,10,208175104
+ggforce::geom_mark_hull,100000,1,294223872
+ggforce::geom_mark_hull,100000,100,302989312
+ggdensity::geom_hdr_lines,10000,1,239255552
+ggdensity::geom_hdr_lines,10000,10,214646784
+ggdensity::geom_hdr_lines,100000,100,329498624

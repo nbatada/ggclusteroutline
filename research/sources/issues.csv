@@ -1,0 +1,46 @@
+package,number,title,url
+ggforce,355,"FR: For alluvial plots, add ability to top-align or middle-align the plot",https://github.com/thomasp85/ggforce/issues/355
+ggforce,354,geom_mark_ellipse renders incorrect ellipse orientation with 3-point groups,https://github.com/thomasp85/ggforce/issues/354
+ggforce,351,R CMD check complains about random(),https://github.com/thomasp85/ggforce/issues/351
+ggforce,348,Leftover reference to robust_predicate license,https://github.com/thomasp85/ggforce/issues/348
+ggalt,95,Installation isse,https://github.com/hrbrmstr/ggalt/issues/95
+ggalt,94,CRAN manual examples for stat_bkde2d() and coord_proj()  produces a warning,https://github.com/hrbrmstr/ggalt/issues/94
+ggdensity,37,Add `method_fun()` for `get_hdr()`,https://github.com/jamesotto852/ggdensity/issues/37
+ggdensity,13,Order of scale for plots using both geom_hdr() and geom_hdr_points(),https://github.com/jamesotto852/ggdensity/issues/13
+ggdensity,10,`geom_hdr_fun()` not producing correct HDRs with axes transformations,https://github.com/jamesotto852/ggdensity/issues/10
+ggdensity,9,`geom_hdr()` fails when `probs` results in equal HDRs,https://github.com/jamesotto852/ggdensity/issues/9
+ggdensity,4,`scale_x_continuous` incompatibility,https://github.com/jamesotto852/ggdensity/issues/4
+ggpubr,796,[aw] Weekly Issue Triage (label-only) failed,https://github.com/kassambara/ggpubr/issues/796
+ggpubr,795,[aw] Weekly Issue Triage (label-only) failed,https://github.com/kassambara/ggpubr/issues/795
+ggpubr,793,[aw] Weekly Issue Triage (label-only) failed,https://github.com/kassambara/ggpubr/issues/793
+ggpubr,792,Alignment of top annotation in annotate_figure(),https://github.com/kassambara/ggpubr/issues/792
+ggpubr,791,Add brackets for pairwise comparisons,https://github.com/kassambara/ggpubr/issues/791
+ggpubr,790,Ten decisions about intended behavior found while auditing current dependencies,https://github.com/kassambara/ggpubr/issues/790
+ggpubr,784,"ggbarplot(): faceted scales = ""free_x"" leaves the error bars at the un-renumbered positions",https://github.com/kassambara/ggpubr/issues/784
+ggpubr,685,[aw] No-Op Runs,https://github.com/kassambara/ggpubr/issues/685
+ggunchull,5,ggsave the fig is blank,https://github.com/sajuukLyu/ggunchull/issues/5
+ggunchull,2,can not download or library this pkg,https://github.com/sajuukLyu/ggunchull/issues/2
+ggunchull,1,No circle on plot,https://github.com/sajuukLyu/ggunchull/issues/1
+concaveman,18,Replace V8 with QuickJSR,https://github.com/joelgombin/concaveman/issues/18
+concaveman,17,Possible error in algorithm - polygon fails to include all points,https://github.com/joelgombin/concaveman/issues/17
+concaveman,15,Error: Shape contains invalid polygons,https://github.com/joelgombin/concaveman/issues/15
+concaveman,14,How can I create more continuous boundary for the returned polygon?,https://github.com/joelgombin/concaveman/issues/14
+concaveman,13,function doesn't return original coordinates,https://github.com/joelgombin/concaveman/issues/13
+concaveman,11,Use of numeric coordinates,https://github.com/joelgombin/concaveman/issues/11
+concaveman,3,Create a vignette,https://github.com/joelgombin/concaveman/issues/3
+sf,2631,Breaking change: st_as_sfc(),https://github.com/r-spatial/sf/issues/2631
+sf,2630,Custom class name is truncated in the `print()` method,https://github.com/r-spatial/sf/issues/2630
+sf,2562,plot(sfobject) is very slow with RStudio on MacOS,https://github.com/r-spatial/sf/issues/2562
+sf,2503,Manually assigning proj pipeline definition in st_transform results in empty geometries,https://github.com/r-spatial/sf/issues/2503
+sf,2501,coord_sf breaks fallback,https://github.com/r-spatial/sf/issues/2501
+sf,2499,New syntax to translate geometry N by values N?,https://github.com/r-spatial/sf/issues/2499
+isoband,43,isobands()/isolines() methods for data frames and SF objects,https://github.com/r-lib/isoband/issues/43
+isoband,40,Reduce package size,https://github.com/r-lib/isoband/issues/40
+isoband,29,isolines do not pass through the grid points that bear the requested value ,https://github.com/r-lib/isoband/issues/29
+isoband,27,Should label placers be evaluated at drawing time?,https://github.com/r-lib/isoband/issues/27
+isoband,23,new label_placer implementation,https://github.com/r-lib/isoband/issues/23
+isoband,5,helper for degenerate matrix,https://github.com/r-lib/isoband/issues/5
+isoband,4,Standardize isoline direction,https://github.com/r-lib/isoband/issues/4
+ggplot2,6929,"Font descent cache is not keyed by device resolution, so a screen render changes a later high-dpi ggsave()",https://github.com/tidyverse/ggplot2/issues/6929
+ggplot2,6926,"Zero width legends when legend.box is set to ""vertical"" and legend.key.width is set to null",https://github.com/tidyverse/ggplot2/issues/6926
+ggplot2,6922,Feature request: automatic text color for best contrast,https://github.com/tidyverse/ggplot2/issues/6922

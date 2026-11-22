@@ -1,0 +1,4 @@
+"case","method","full_area","reduced_area","area_ratio","removal_fraction"
+"ring","convex_hull",3.80858491387869,3.80596195396187,0.999311303285568,0.1
+"islands","convex_hull",5.97890699706137,5.97890699706137,1,0.1
+"crescent","convex_hull",4.05195019760775,4.05104302917313,0.999776115601037,0.1
