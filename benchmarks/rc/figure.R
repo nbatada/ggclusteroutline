@@ -16,7 +16,7 @@ p <- ggplot(d,aes(x,y))+geom_point(aes(colour=factor(leiden)),size=1,stroke=0)+
 q <- ggplot(d[order(d$NKG7),],aes(x,y))+geom_point(aes(colour=NKG7),size=1.2,stroke=0)+
   scale_colour_gradientn(colours=c("#C6CCD2","#A5B6D9","#667EBA","#453E92","#240F5A"),
                          guide=guide_colourbar(barwidth=6,barheight=.45))+
-  geom_cluster_outline(aes(group=leiden),clusters=4,colour="#B84718",linewidth=.55)+
+  geom_cluster_outline(aes(group=leiden),clusters=4,method="tight",colour="#B84718",linewidth=.55)+
   coord_equal()+labs(title="NKG7 expression",subtitle="Automatic tight bands · Leiden 4")+common
 b <- ggplot_build(q)
 stopifnot(nrow(b$data[[1]])==700,length(unique(b$data[[2]]$group))==2)

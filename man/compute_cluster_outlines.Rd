@@ -5,7 +5,7 @@
 \description{Compute ordered data-space paths for supplied labels or clear the session-local cache.}
 \usage{
 compute_cluster_outlines(data, x, y, group, clusters = NULL,
-  method = c("tight", "territory", "islands"), bandwidth = NULL, mass = .9,
+  method = c("territory", "tight", "islands"), bandwidth = NULL, mass = .9,
   grid_size = 160L, cache = TRUE, component = NULL, facets = NULL)
 
 clear_outline_cache()
@@ -23,7 +23,7 @@ is 0.035 times the longer panel span. In islands mode this sets tile width, with
 \item{mass}{Fraction of a group's smoothed grid mass used to choose its support
 threshold, strictly between zero and one.}
 \item{grid_size}{Integer from 32 to 512 giving nodes per grid axis.}
-\item{component}{Optional column of supplied spatial component IDs for tight mode. Each component gets its own all-member hull.}
+\item{component}{Optional column of supplied spatial component IDs. Supplying it with no method selects tight component hulls. Each component gets its own all-member hull.}
 \item{facets}{Optional character vector of complete facet-key columns. Compute each panel independently and retain its original keys in frozen geometry.}
 \item{cache}{Use the bounded session-local geometry cache. Row reordering can cause
 a cache miss.}
@@ -36,7 +36,7 @@ mass support. More abundant neighbours can suppress a small population.
 A territory can omit members, enclose other labels or be absent.
 Neither method changes cell assignments. Tight hulls can enclose cells of other
 groups. Unresolved geometry is reported through diagnostics.
-The default grid and bandwidth are starting values. Inspect the full map.
+The default method is locally dominant territory. The default grid and bandwidth are starting values. Inspect the full map.
 }
 \value{
 A data frame inheriting from \code{cluster_outlines}, containing original cluster

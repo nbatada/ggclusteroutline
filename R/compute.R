@@ -27,9 +27,10 @@ cache_result <- function(key, value) {
 }
 
 compute_cluster_outlines <- function(data, x, y, group, clusters = NULL,
-                                     method = c("tight", "territory", "islands"),
+                                     method = c("territory", "tight", "islands"),
                                      bandwidth = NULL, mass = .9, grid_size = 160L,
                                      cache = TRUE, component = NULL, facets = NULL) {
+  if (missing(method) && !is.null(component)) method <- "tight"
   method <- match.arg(method)
   fields <- list(x, y, group)
   valid_field <- function(s) is.character(s) && length(s) == 1L &&

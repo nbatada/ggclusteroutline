@@ -2,7 +2,11 @@
 
 **Technical GO on the tested macOS environment.** The patch clears the v0.1.0 facet blocker and the other verified correctness defects. The candidate is ready for scientist review. Public release approval and Windows/Linux verification remain open.
 
-**Artifact.** On 22 November 2026, R 4.5.3 built `ggclusteroutline_0.1.1.tar.gz`. SHA-256 is `ed097be2afaf7f9601ee73536a959a65d12d1b4f4570bed894241ac5e9012290`. A fresh R process confirmed the package was absent, then installed the archive in an empty target library. The test environment used isolated dependencies and disabled the site library. The README checkout installation also succeeded with pak. [Checksum](SHA256SUMS-v0.1.1)
+**Artifact.** On 22 November 2026, R 4.5.3 built `ggclusteroutline_0.1.1.tar.gz`. SHA-256 is `c9b121cf1252b81c9b5d77ddd5216b1030dd175b89c9c793d5bdbc47c19005db`. A fresh R process confirmed the package was absent, then installed the archive in an empty target library. The test environment used isolated dependencies and disabled the site library. The earlier candidate also passed the README checkout installation with pak. [Checksum](SHA256SUMS-v0.1.1)
+
+## Updated one-line default
+
+The omitted method now selects territory in both the live layer and precomputation. The rendered one-line layer drew one contour on the compact 400-cell fixture, 22/23 groups on the full Yost embedding and 13/18 on NSCLC. It produced two territories for PBMC cluster 4. The original two all-member hulls remain available with explicit tight mode. Supplying a component column retains the existing component-hull behavior. A regression test compares the default layer's actual vertices to explicit territory and confirms strict tight still abstains on the same Gaussian. [Full-map comparison](../research/default-review/default-comparison.png)
 
 ## Corrections verified
 
@@ -27,11 +31,11 @@
 
 The replay verified the original compressed input hashes and unique IDs before computing territory geometry on every cell. The grid, bandwidth and mass matched the pinned v0.1.0 profile. All own-member and other-label counts agreed with separate classification of the returned polygons, label by label. Comparison to stored CellStyle paths reproduced the single Yost classification difference and zero NSCLC differences.
 
-| Full embedding | Cells | Labels drawn by territory | Own / other-label inclusions | Cold / cached geometry | ggplot build / PNG draw | Peak replay RSS |
-|---|---:|---:|---:|---:|---:|---:|
-| Yost | 33,106 | 23/23 | 22,515 / 8,854 | 0.507 / 0.006 s | 0.550 / 0.122 s | 243 MiB |
-| NSCLC | 622,791 | 14/18 | 395,316 / 193,288 | 1.465 / 0.082 s | 1.578 / 1.536 s | 458 MiB |
+| Full embedding | Cells | Labels drawn by territory | Own / other-label inclusions | Cold / cached geometry |
+|---|---:|---:|---:|---:|
+| Yost | 33,106 | 23/23 | 22,515 / 8,854 | 0.572 / 0.006 s |
+| NSCLC | 622,791 | 14/18 | 395,316 / 193,288 | 1.513 / 0.081 s |
 
-Times are single local runs. Rendering retained all points. Peak RSS covers the replay process, including input reading and comparisons. Default tight mode still warned and produced 0/23 and 0/18 groups. Occupied islands drew 23/23 and 18/18. These outcomes are documented method choices. On the separate 100,000-point, 100-component overhead test, median geometry plus build and draw was 0.445 s versus 0.360 s for direct base hulls across three repeats. Median peak RSS was 230 versus 224 MiB. Both ratios passed the proposed 2× budget for supplied components.
+Times are single local runs. Rendering retained all points. Explicit tight mode warned and produced 0/23 and 0/18 groups. Occupied islands drew 23/23 and 18/18. These outcomes are documented method choices. On the preceding candidate’s separate 100,000-point, 100-component overhead test, median geometry plus build and draw was 0.445 s versus 0.360 s for direct base hulls across three repeats. Median peak RSS was 230 versus 224 MiB. Both ratios passed the proposed 2× budget for supplied components.
 
 **Next action.** Submit the local candidate for scientist review, then run release CI on the approved source before publication.

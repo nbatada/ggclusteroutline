@@ -40,7 +40,7 @@ for (i in seq_along(studies)) {
   methods <- c("tight","islands","territory")
   for(j in seq_along(methods)){
     method <- methods[j]
-    band <- if(method=="tight") geom_cluster_outline(aes(group=leiden),clusters=ids) else
+    band <- if(method=="territory") geom_cluster_outline(aes(group=leiden),clusters=ids) else
       geom_cluster_outline(aes(group=leiden),clusters=ids,method=method)
     plot <- p + geom_point(colour="grey78",size=size,stroke=0) + band
     g <- suppressWarnings(ggplot_build(plot))

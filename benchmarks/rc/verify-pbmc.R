@@ -2,7 +2,7 @@
 library(ggclusteroutline)
 library(ggplot2)
 d <- read.csv(system.file("extdata","pbmc700.csv",package="ggclusteroutline"))
-p <- compute_cluster_outlines(d,"x","y","leiden",clusters=4)
+p <- compute_cluster_outlines(d,"x","y","leiden",clusters=4,method="tight")
 m <- split(p,p$path)
 in_ring <- sapply(m,function(r) sp::point.in.polygon(d$x,d$y,r$x,r$y)>0)
 manual <- read.csv("research/leiden-reference/cells.csv")

@@ -23,3 +23,5 @@ D012 · Scientist authorized M1 and local v0.1.0 release preparation, including 
 D013 · RC implements territory-seeded tight bands, explicit dominant-region territory, and opt-in occupied-tile all-member bands for cases where strict territory seeds miss members. The manually partitioned PBMC split is an external acceptance fixture. All methods retain original group identity. The in-memory cache is bounded; portable RDS objects support cross-session reuse.
 
 D014 · The scientist authorized the v0.1.1 audit fixes and local requalification. Retain strict tight-mode abstention, the occupied-tile definition and the territory profile. Make the default's measured yield visible, expose other-label territory counts, and correct the verified geometry and facet defects. Release publication requires a separate decision.
+
+D015 · After the full-map comparison and the scientist’s instruction to fix the default, v0.1.1 uses locally dominant territories for the one-line layer and precomputation. Explicit tight mode preserves strict all-member semantics. An explicit component column continues to request component hulls.

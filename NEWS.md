@@ -4,7 +4,7 @@
 - Frozen paths respect stored vertex order after row reordering.
 - Nearly vertical all-member segments span the full component.
 - Territory diagnostics count enclosed cells carrying other labels. Frozen objects record their source fingerprint, coordinate space and software versions.
-- The README describes abstention and fragmentation in the first examples and distinguishes strict-default results from territory benchmarks.
+- The one-line layer and precomputation now default to locally dominant territories. Request `method = "tight"` for the former strict default. Supplying a component column continues to request all-member component hulls.
 
 # ggclusteroutline 0.1.0
 

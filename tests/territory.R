@@ -38,3 +38,14 @@ diagnostics <- attr(territory, "diagnostics")
 stopifnot(diagnostics$status == "ok", diagnostics$other_points == sum(other_inside),
           diagnostics$assigned_points == 369L, diagnostics$other_points == 41L,
           attr(p,"diagnostics")$other_points[2L] == 0L)
+
+# The public one-line call must draw the compact group where strict tight abstains.
+default <- compute_cluster_outlines(a, "x", "y", "id")
+explicit <- compute_cluster_outlines(a, "x", "y", "id", method = "territory")
+stopifnot(identical(default, explicit), length(unique(default$path)) == 1L)
+plot <- ggplot2::ggplot(a, ggplot2::aes(x, y)) + ggplot2::geom_point() +
+  geom_cluster_outline(ggplot2::aes(group = id))
+live <- ggplot2::ggplot_build(plot)$data[[2L]]
+stopifnot(identical(live$x, default$x), identical(live$y, default$y))
+strict <- suppressWarnings(compute_cluster_outlines(a, "x", "y", "id", method = "tight"))
+stopifnot(nrow(strict) == 0L)

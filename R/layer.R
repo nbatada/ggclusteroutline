@@ -112,7 +112,7 @@ StatClusterOutline <- ggplot2::ggproto(
     }
     data
   },
-  compute_panel = function(data, scales, clusters = NULL, method = "tight",
+  compute_panel = function(data, scales, clusters = NULL, method = "territory",
                            bandwidth = NULL, mass = 0.9, grid_size = 160L,
                            cache = TRUE, na.rm = FALSE) {
     if (!identical(scales$x$trans$name, "identity") || !identical(scales$y$trans$name, "identity")) {
@@ -198,7 +198,7 @@ GeomClusterOutline <- ggplot2::ggproto(
 #'   facet keys to be repeated in every facet. Defaults to `FALSE`.
 #' @export
 geom_cluster_outline <- function(mapping = NULL, data = NULL, clusters = NULL,
-                                 method = c("tight", "territory", "islands"),
+                                 method = c("territory", "tight", "islands"),
                                  bandwidth = NULL, mass = 0.9,
                                  grid_size = 160L, cache = TRUE, ...,
                                  colour = "#C23B22", linewidth = 0.5,

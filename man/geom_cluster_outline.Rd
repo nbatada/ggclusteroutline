@@ -4,7 +4,7 @@
 \description{Overlay computed or frozen paths on a scatterplot with supplied cluster assignments.}
 \usage{
 geom_cluster_outline(mapping = NULL, data = NULL, clusters = NULL,
-  method = c("tight", "territory", "islands"), bandwidth = NULL, mass = 0.9,
+  method = c("territory", "tight", "islands"), bandwidth = NULL, mass = 0.9,
   grid_size = 160L, cache = TRUE, ..., colour = "#C23B22", linewidth = 0.5,
   linetype = 1, alpha = NA, size = 1.5, shape = 16, stroke = 0.5,
   na.rm = FALSE, show.legend = NA,
@@ -35,7 +35,7 @@ aesthetics.}
 \code{clusters} to select the displayed paths. The point data and its aesthetic
 mappings remain available to ggplot. An independent layer data table must
 contain every facet-key column unless \code{replicate = TRUE} is intentional.
-Use linear Cartesian axes.}
+The default method draws locally dominant territories. Use linear Cartesian axes.}
 \examples{
 library(ggplot2)
 d <- read.csv(system.file("extdata", "pbmc700.csv", package = "ggclusteroutline"))

@@ -4,7 +4,7 @@ Draw outlines around labelled groups on a UMAP, PCA or other two-dimensional sca
 
 ![All 700 PBMCs shown twice, with saved Leiden IDs on the left and two automatically computed bands around Leiden 4 on the NKG7 expression map on the right](man/figures/pbmc700.png)
 
-On this saved PBMC map, Leiden 4 occupies two islands. The default tight method produces two convex bands covering the 13 and 35 assigned cells. No other cell centre falls inside. The example table and its provenance ship with the package.
+On this saved PBMC map, Leiden 4 occupies two islands. The tight method shown here produces two convex bands covering the 13 and 35 assigned cells. No other cell centre falls inside. The example table and its provenance ship with the package.
 
 ## Install
 
@@ -25,7 +25,7 @@ The previously published source archive is available from the [v0.1.0 release](h
 
 ## Choose what the outline should show
 
-Use `tight` for an all-member band when every member can be assigned to one supported island. It warns and skips ambiguous groups. The default drew two bands for PBMC cluster 4, but no bands for any of the 23 Yost or 18 NSCLC labels. Use `territory` to show local dominance: it drew 23/23 and 14/18 labels on those maps with the published settings. Use `islands` when every member needs a glyph or enclosure. Its tile width can split a compact cloud into many pieces (21 paths for the audited 400-point Gaussian at defaults).
+The one-line default draws the regions where each label locally dominates. With no tuning it drew 22 of 23 Yost groups and 13 of 18 NSCLC groups. A dispersed group may have no territory. Use `tight` for an all-member band when every member can be assigned to one supported island. It drew two bands for PBMC cluster 4 and abstained on both full atlases. Use `islands` when every member needs a glyph or enclosure. Its tile width can split a compact cloud into many pieces (21 paths for the audited 400-point Gaussian at defaults).
 
 ```r
 library(ggplot2)
@@ -36,17 +36,17 @@ p <- ggplot(cells, aes(x, y)) +
   geom_point(aes(colour = NKG7), size = 0.7) +
   coord_equal()
 
+p + geom_cluster_outline(aes(group = leiden))
 p + geom_cluster_outline(aes(group = leiden), clusters = 4, method = "tight")
-p + geom_cluster_outline(aes(group = leiden), method = "territory")
 ```
 
 Always supply the full map. The `clusters` argument selects which outlines to display after all eligible labels have competed. Each ordinary ggplot facet uses its own panel data. Separate outline tables must carry the facet variables for each panel unless you set `replicate = TRUE` to repeat those data across the missing facets. Set outline styling outside `aes()`, for example `colour = "black"`. If the point layer overrides the global coordinates, pass its coordinates explicitly to the outline, for example `aes(x = UMAP_1, y = UMAP_2, group = leiden)`. Use `coord_cartesian()` to zoom while keeping the full geometry input.
 
 | Method | What the line means | What to look for |
 |---|---|---|
-| `"tight"` (default) | Convex envelope around the observed cell centres assigned to each supported island. Territory contours provide candidate islands. | A returned group covers its members. Ambiguous or unsupported assignments can leave the group without an outline. Other labels may lie inside a hull. |
+| `"tight"` | Convex envelope around the observed cell centres assigned to each supported island. Territory contours provide candidate islands. | A returned group covers its members. Ambiguous or unsupported assignments can leave the group without an outline. Other labels may lie inside a hull. |
 | `"islands"` | Enclose each connected set of occupied tiles within the original label. All member centres contribute, including isolated points. | Adjacent tiles connect along edges or corners. Tile width controls separation. Distinct labels can have overlapping hulls. |
-| `"territory"` | Inset contour of the region where this label has the largest smoothed cell count and meets its own density threshold. | Useful for overlapping populations. A rare or intermixed label may have no band. The contour can omit members and include other labels. |
+| `"territory"` (default) | Inset contour of the region where this label has the largest smoothed cell count and meets its own density threshold. | Useful for overlapping populations. A rare or intermixed label may have no band. The contour can omit members and include other labels. |
 
 The tight and territory modes use the existing CellStyle territory algorithm as their reference. For a full-member outline even when territory support is incomplete, use `method = "islands"`. This uses 8-neighbour tile connectivity within each supplied label (DBSCAN on occupied tile centres, minimum one tile). It preserves the existing biological assignments. `bandwidth` sets a smoothing length in embedding units, `mass` controls support before competition, and `grid_size` sets grid resolution. Check the result on the full labelled embedding. For known components, `compute_cluster_outlines(..., component = "island_id")` directly encloses each supplied component.
 
