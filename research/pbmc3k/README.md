@@ -1,0 +1,7 @@
+# M0/pbmc3k/four-methods · revision 1
+
+[Comparison PDF](four-methods.pdf) · [PNG](four-methods.png) · [2,638 plotted rows](points.csv) · [generating code](plot.R)
+
+The public 10x Genomics PBMC3k dataset was distributed as a processed Scanpy tutorial object. This comparison uses its saved X_umap coordinates, original cell barcodes and annotated Louvain categories. CD8 T cells (316) were selected by their stored label. NKG7 comes directly from the legacy file's raw.X gene matrix. The script checks that reversing log1p yields integer counts to numerical precision. It preserves the complete expression range and draws higher expression last. [Scanpy dataset](https://scanpy.scverse.org/en/stable/generated/scanpy.datasets.pbmc3k_processed.html)
+
+The SHA-256 in the script pins the exact H5AD file. The existing public resource on this machine is the default input. Pass its path as an argument on another machine. Run from the repository root with the [M0 plotting libraries](../README.md), rhdf5, digest and sp. The script saves the exact per-cell table before plotting. All panels share point coordinates, draw order, colour limits and aspect ratio. Both hull marks use zero expansion. ggforce also uses zero rounding. The KDE uses a single 95% estimated-mass level, native bandwidth and the same padded domain as the plot. A point-in-polygon check found 308/316 selected and 149/2,322 other cells inside its contour. The contour indicates proximity in the projection. M1 approval remains pending.
