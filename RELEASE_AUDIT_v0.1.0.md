@@ -101,6 +101,24 @@ A second benchmark ran each method three times per dataset, each time in a fresh
 - Two exact-density competitors produced the same winning label after reversing input order. Twenty permutations of a square with duplicate and edge-collinear observations produced the same hull. Frozen paths survived an RDS round-trip.
 - Two independent vanilla R processes recomputed PBMC label 4 with caching disabled. The SHA-256 hashes of the serialized full result matched across processes for tight (`9c657ce6…c98744b`), islands (`c58da1fe…98bce244`) and territory (`67db792b…73aed8a`). This establishes repeatability in the tested software environment.
 
-## Next action
+## Independent follow-up on the additional findings
 
-Prepare a patch release that rejects missing facet keys on separate computed-layer tables unless replication is explicit. Add regression tests for both keyed and unkeyed input, including facets added after the outline layer. Fix segment endpoint selection along the direction of greatest spread and test containment independently of the diagnostics. Re-run the two reproductions and the full package check before recommending the patch.
+The follow-up rechecked the published archive's SHA-256 and installed it in a fresh temporary library. The probes used R 4.5.3 and ggplot2 4.0.3. The original NO-GO stands.
+
+| Severity | Probe | Observed result |
+|---|---|---|
+| IMPORTANT | Freeze a unit square, then reorder its five rows to 1, 3, 2, 4, 5 while preserving each vertex ID. Build the plot and its grob. | Both plots built without a warning. The original path enclosed one square unit. The shuffled path crossed itself and its absolute shoelace area fell to zero. |
+| IMPORTANT | Compute the territory of A in overlapping groups and independently classify every cell centre against the returned ring. | The ring contained 369 of 400 A cells and 41 of 60 B cells. The public diagnostics reported 369 assigned and 31 unresolved A cells. They omitted the 41 enclosed B cells requested by the territory specification. |
+| IMPORTANT | Use the strict default on a compact Gaussian cloud of 400 cells, then on that cloud and a copy shifted by 10 units. | The single cloud had 31 unresolved members. The two separated clouds had six and five unresolved members. The package warned and returned zero paths in both runs. Default islands mode drew 21 paths for the single cloud. |
+| MINOR | Map both colour and linetype to group on the outline. Separately, put a 100-unit x offset in the global mapping and override x on the point layer. | Both outline groups used the fixed colour `#C23B22` and linetype 1. In the offset test, point x ranged from −1.260 to 11.360 and outline x from 98.740 to 111.360. Document fixed styling and show explicit outline coordinates when points override the global mapping. |
+
+For the Gaussian probes, use `set.seed(293)` and draw x and y successively with `rnorm(400, 0, 0.4)`. For the territory count, use the original cloud as A and its first 60 rows shifted by +0.3 on x as B. Request only A with `method = "territory"` and classify centres with `sp::point.in.polygon`.
+
+## Recommended fixes for v0.1.1
+
+1. Reject missing facet keys on independently supplied outline data unless the caller explicitly requests replication. Test keyed and unkeyed tables with both layer/facet addition orders.
+2. Fix the near-vertical segment that omitted a member while reporting full coverage. Test containment of every input point against the returned segment and compare it with the diagnostics.
+3. Use stored vertex order when drawing frozen paths, or reject invalid order explicitly. Test the shuffled square against the original path.
+4. Report the count of enclosed other-label cells for territories. Test it against an independent point-in-polygon count on overlapping labels.
+5. Explain default abstention, occupied-island fragmentation, fixed styling and coordinate inheritance in the README. Show default drawn/requested counts alongside the full-data territory examples.
+6. Repeat the full release audit on the patch candidate, including clean installation, R CMD check, the regression cases and both full datasets.
