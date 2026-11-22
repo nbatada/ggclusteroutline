@@ -1,0 +1,13 @@
+"study","method","requested","drawn","paths","polygons","segments","singletons"
+"PBMC","tight",1,1,2,2,0,0
+"PBMC","islands",1,1,2,2,0,0
+"PBMC","territory",1,1,2,2,0,0
+"Gaussian","tight",1,0,0,0,0,0
+"Gaussian","islands",1,1,21,2,3,16
+"Gaussian","territory",1,1,1,1,0,0
+"Yost","tight",23,0,0,0,0,0
+"Yost","islands",23,23,179,103,21,55
+"Yost","territory",23,22,24,24,0,0
+"NSCLC","tight",18,0,0,0,0,0
+"NSCLC","islands",18,18,54,28,3,23
+"NSCLC","territory",18,13,16,16,0,0
