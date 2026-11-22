@@ -16,3 +16,5 @@ OPEN: exact automatic geometry/fallback strategy; boundary coverage semantics; p
 Scientist visual selections and milestone approval remain open. Earlier priorities describe the candidate product. D006–D008 record the architect's recommendation and proposed scope only.
 
 D010 · Scientist visual choice for cluster 4. Show the entire UMAP in every panel. Use a labelled Leiden reference on the left and one tight band per spatially separate island of the selected Leiden cluster on the expression map. The demonstrated two-band construction uses a manually identified gap. Automatic island separation and M1 approval remain open. [Full UMAP evidence](research/leiden-reference/full-umap-bands.pdf)
+
+D011 · Architect proposal pending GO. Adapt CellStyle's native R territory geometry and tests by attribution, preserving its working implementations. Distinguish a dominant region from the D010 all-member tight bands. Evaluate territory as an island finder before adopting it for the latter. D007's convex-only M1 is superseded as a proposal. [Evidence](research/territory/README.md)
