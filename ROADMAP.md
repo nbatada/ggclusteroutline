@@ -13,3 +13,7 @@ M4 — Labels (approval required): boundary-aware positions, collision/leader li
 M5 — Release hardening (approval required): R CMD check, package docs, CRAN policies, CI, portability, examples, licensing, performance, visual snapshots; no public release without scientist authorization.
 M6 — Python (separate decision): Scanpy/Matplotlib or plotnine adapter using validated geometry contract, only if justified.
 At each milestone: report evidence, failures, regressions, unresolved decisions, commit hash, and next smallest ticket.
+
+## 0.1.0 release-candidate status
+
+The subsequent scientist GO authorized M1a, M1b and the local release-preparation portions of M2/M3/M5. The automatic M1a gate passed. Current scope, measured limits, compatibility and publication decision are tracked in [current state](CURRENT_STATE.md) and the [RC evidence](benchmarks/rc/README.md). Public release, labels, persistent caches and a Python implementation remain separately gated.

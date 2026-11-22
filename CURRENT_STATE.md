@@ -1,5 +1,7 @@
 # Current state · 22 November 2026
 
-M0 design review complete. The scientist selected full-UMAP, tight island-wise bands. CellStyle territory now provides a native R reference and a candidate way to find islands. On the 700-cell fixture it recovered two rings and all 48 selected members, but even its tighter tested profile enclosed 3.37× the manual hull area. Mixed-cluster evidence supports treating territory as an explicit dominant-region mode.
+**v0.1.0 local release candidate.** The scientist authorized native R implementation and local release preparation. The full-map PBMC feasibility gate passed automatically with two tight hulls, 48/48 own members, zero others, and matching reference area. The package includes a native ggplot2 layer, tested Seurat integration, per-facet paths, small-group glyphs, frozen reuse and a bounded automatic cache.
 
-The previous NO-GO recommendation for a convex-only wrapper remains historical. The current recommendation is a bounded M1a feasibility test after explicit scientist GO. No production work is authorized. [Review](research/territory/README.md) · [roadmap](ROADMAP.md) · [specification](specs/PRODUCT_SPEC.md)
+The full package check passed on macOS, including all seven installed-package test scripts, examples and the PDF manual. CellStyle remained a read-only external reference. See [validation](release/R-CMD-check.txt), [benchmarks](benchmarks/rc/README.md), and [release steps](release/README.md).
+
+The GitHub workflow is configured. Public repository creation, remote CI, tagging the final GitHub release and publication require explicit approval. The scientist's visual preference is a full-UMAP reference plus tight island-wise bands. General visual performance remains dataset dependent, with abstentions recorded in the geometry diagnostics.

@@ -1,5 +1,82 @@
 # ggclusteroutline
 
-This repository contains the [M0 competitive audit](AUDIT.md), comparative figures and research scripts for a proposed R/ggplot2 extension. The scientist selected tight bands around separated islands. The [CellStyle territory evaluation](research/territory/README.md) proposes a bounded feasibility test, pending explicit GO.
+Draw outlines around labelled groups on a UMAP, PCA or other two-dimensional scatterplot while point colour shows gene expression. The R package takes the existing coordinates and assignments. It computes the outline separately from the point layer.
 
-Start with the [four-method visual comparison](research/visual/output/matched_plate_3x4.png) and the [selected-group example on measured data](research/field/penguins.pdf). The [proposed specification](specs/PRODUCT_SPEC.md) distinguishes tight all-member bands from dominant-region contours. [Project state](CURRENT_STATE.md) · [roadmap](ROADMAP.md)
+![All 700 PBMCs shown twice, with saved Leiden IDs on the left and two automatically computed bands around Leiden 4 on the NKG7 expression map on the right](man/figures/pbmc700.png)
+
+On this saved PBMC map, Leiden 4 occupies two islands. The default tight method produces two convex bands covering the 13 and 35 assigned cells. No other cell centre falls inside. The example table and its provenance ship with the package.
+
+## Install the release candidate
+
+From a checkout of the repository, install the package with:
+
+```r
+install.packages("pak")  # once
+pak::local_install(".")
+```
+
+With dependencies already available, install the source archive from a terminal:
+
+```sh
+R CMD INSTALL ggclusteroutline_0.1.0.tar.gz
+```
+
+## Outline one cluster, or all clusters
+
+```r
+library(ggplot2)
+library(ggclusteroutline)
+
+cells <- read.csv(system.file("extdata", "pbmc700.csv", package = "ggclusteroutline"))
+p <- ggplot(cells, aes(x, y)) +
+  geom_point(aes(colour = NKG7), size = 0.7) +
+  coord_equal()
+
+p + geom_cluster_outline(aes(group = leiden), clusters = 4)
+p + geom_cluster_outline(aes(group = leiden), method = "territory")
+```
+
+Always supply the full map. The `clusters` argument selects which outlines to display after all eligible labels have competed. Each ordinary ggplot facet uses its own panel data. Colour, shape and gene expression are display variables.
+
+| Method | What the line means | What to look for |
+|---|---|---|
+| `"tight"` (default) | Convex envelope around the observed cell centres assigned to each supported island. Territory contours provide candidate islands. | A returned group covers its members. Ambiguous or unsupported assignments can leave the group without an outline. Other labels may lie inside a hull. |
+| `"islands"` | Enclose each connected set of occupied tiles within the original label. All member centres contribute, including isolated points. | Adjacent tiles connect along edges or corners. Tile width controls separation. Distinct labels can have overlapping hulls. |
+| `"territory"` | Inset contour of the region where this label has the largest smoothed cell count and meets its own density threshold. | Useful for overlapping populations. A rare or intermixed label may have no band. The contour can omit members and include other labels. |
+
+The tight and territory modes use the existing CellStyle territory algorithm as their reference. For a full-member outline even when territory support is incomplete, use `method = "islands"`. This uses 8-neighbour tile connectivity within each supplied label (DBSCAN on occupied tile centres, minimum one tile). It preserves the existing biological assignments. `bandwidth` sets a smoothing length in embedding units, `mass` controls support before competition, and `grid_size` sets grid resolution. Check the result on the full labelled embedding. For known components, `compute_cluster_outlines(..., component = "island_id")` directly encloses each supplied component.
+
+## On a Seurat DimPlot
+
+```r
+# 'leiden' must be a metadata column containing the assignments to outline.
+dimplot <- Seurat::DimPlot(object, reduction = "umap", group.by = "leiden",
+                          combine = FALSE)[[1]]
+dimplot + geom_cluster_outline(aes(group = leiden), clusters = "4")
+```
+
+Using an individual ggplot makes the target panel explicit when Seurat returns multiple plots. The example uses the existing UMAP and cluster assignments.
+
+## Freeze geometry across expression plots
+
+```r
+bands <- compute_cluster_outlines(cells, "x", "y", "leiden", clusters = 4)
+attr(bands, "diagnostics")
+saveRDS(bands, "leiden-4.rds")
+p + geom_cluster_outline(data = readRDS("leiden-4.rds"), colour = "black")
+```
+
+Use frozen paths only for their originating embedding, membership and facet definition. For example, pass `facets = "sample"` when precomputing geometry for independent sample panels. The automatic in-session cache hashes coordinates, labels, selection, mode and geometry parameters. A new marker colour reuses geometry. Changing a competitor or coordinate invalidates that panel. Row reordering can miss the cache. The cache holds at most 16 results and 16 MiB of estimated geometry, with least-recently-used eviction. Use `cache = FALSE` for cold measurements or `clear_outline_cache()` to release its entries.
+
+## Evidence and limitations
+
+Cell-centre containment on existing CellStyle benchmark inputs, using the 256-node grid, 1.2%-of-span bandwidth and 97% mass profile:
+
+| Full embedding | Cells / labels | Inside own territory | Inside own ggforce hull |
+|---|---:|---:|---:|
+| Yost BCC T cells | 33,106 / 23 | 22,515 (68.0%) | 33,106 (100%) |
+| NSCLC T/NK cells | 622,791 / 18 | 395,316 (63.5%) | 622,791 (100%) |
+
+The ggforce counts use polygons extracted from actual ggforce renders. Broad hulls can include many cells assigned to other labels. The package's territory classifications differed from CellStyle Python for one Yost cell-by-label decision and zero NSCLC decisions. These comparisons concern visualization on a fixed partition. Linear Cartesian axes are the supported coordinate space. For variable-density embeddings, inspect component count, overlap and omissions before reusing paths.
+
+[Benchmark methods, timings and memory](benchmarks/rc/README.md) · [Full PBMC comparison PDF](benchmarks/rc/pbmc700.pdf) · [Research audit](AUDIT.md) · [MIT license](LICENSE.md)

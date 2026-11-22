@@ -1,0 +1,8 @@
+export(compute_cluster_outlines)
+export(geom_cluster_outline)
+export(clear_outline_cache)
+importFrom(stats,setNames)
+importFrom(rlang,.data)
+importFrom(grid,grobTree)
+importFrom(ggplot2,ggplot_add)
+S3method(ggplot_add,ggclusteroutline_layer)

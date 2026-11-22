@@ -1,0 +1,15 @@
+Package: ggclusteroutline
+Type: Package
+Title: Outline Labelled Point Clusters in Two-Dimensional Embeddings
+Version: 0.1.0
+Authors@R: c(person("Nizar", "Batada", email = "nizar.batada@gmail.com", role = c("aut", "cre")),
+    person("CellStyle contributors", role = "cph"))
+Description: Add tight component envelopes or locally dominant density regions
+    to ggplot2 scatterplots. Compute geometry from supplied coordinates and
+    cluster assignments independently of point colour. Reuse frozen paths
+    across figures or cache repeated computations within an R session.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Depends: R (>= 4.1.0)
+Imports: dbscan, digest, ggplot2 (>= 3.5.0), rlang, sp, grid, stats
+Suggests: Seurat, SeuratObject, testthat, Matrix

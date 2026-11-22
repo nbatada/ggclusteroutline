@@ -1,0 +1,4 @@
+/release/*.tar.gz
+/.Rhistory
+/Rplots.pdf
+/*.Rcheck/
