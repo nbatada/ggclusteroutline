@@ -1,4 +1,4 @@
-* using log directory ‘/private/tmp/ggco-feature.qLkp1r/ggclusteroutline.Rcheck’
+* using log directory ‘/private/tmp/ggco-styles.qJ3jtn/ggclusteroutline.Rcheck’
 * using R version 4.5.3 (2026-03-11)
 * using platform: aarch64-apple-darwin25.3.0
 * R was compiled by
