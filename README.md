@@ -61,6 +61,32 @@ dimplot + geom_cluster_outline(aes(group = leiden), clusters = "4")
 
 Using an individual ggplot makes the target panel explicit when Seurat returns multiple plots. The example uses the existing UMAP and cluster assignments.
 
+## Outline and name selected clusters on a Seurat FeaturePlot
+
+Point colour shows **MS4A1 expression**. The red contours show the territories of two selected identities. Seurat adds one name per selected identity, even when its territory has several islands.
+
+![MS4A1 expression on the example Seurat t-SNE with territories and names for Cluster 1 and Cluster 2](man/figures/seurat-featureplot.png)
+
+```r
+library(Seurat)
+library(ggplot2)
+library(ggclusteroutline)
+
+# Give two existing identities display names on a copy of the example object.
+example <- RenameIdents(pbmc_small, `1` = "Cluster 1", `2` = "Cluster 2")
+highlight <- c("Cluster 1", "Cluster 2")
+p <- FeaturePlot(example, features = "MS4A1", reduction = "tsne",
+                 order = TRUE, raster = FALSE, combine = FALSE)[[1]]
+# Let the axes include the whole outline, even beyond the outermost point.
+outlined <- p + scale_x_continuous() + scale_y_continuous() +
+  geom_cluster_outline(aes(group = ident), clusters = highlight)
+labelled <- LabelClusters(outlined, id = "ident", clusters = highlight,
+                          position = "nearest", repel = TRUE, seed = 17)
+labelled
+```
+
+For a human **FOXP3** UMAP, use your own object, set `features = "FOXP3"` and `reduction = "umap"`. To outline a saved Leiden partition, first set `Idents(example) <- "leiden"` on your copy and set `highlight` to the IDs in that column. If the active identities already contain your preferred names, use those names directly and skip `RenameIdents()`. Print `outlined` for contours alone. `LabelClusters()` labels the requested identities independently of whether each has a supported territory.
+
 ## Freeze geometry across expression plots
 
 ```r
