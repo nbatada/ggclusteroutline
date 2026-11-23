@@ -1,27 +1,64 @@
 # ggclusteroutline
 
-Draw outlines around labelled groups on a UMAP, PCA or other two-dimensional scatterplot while point colour shows gene expression. The R package takes the existing coordinates and assignments. It computes the outline separately from the point layer.
+Keep gene expression in colour and show cluster identity with an outline. Add a ggplot2 layer to an existing Seurat UMAP to outline **one cluster or all clusters**. The default draws the regions where each cluster is locally most abundant.
 
-![All 700 PBMCs shown twice, with saved Leiden IDs on the left and two automatically computed bands around Leiden 4 on the NKG7 expression map on the right](man/figures/pbmc700.png)
+![622,791 NSCLC T/NK cells on the same UMAP: Leiden assignments, overlapping ggforce hulls and separate ggclusteroutline territories](research/shared-islands/NSCLC.png)
 
-On this saved PBMC map, Leiden 4 occupies two islands. The tight method shown here produces two convex bands covering the 13 and 35 assigned cells. No other cell centre falls inside. The example table and its provenance ship with the package.
+In this lung cancer dataset, several Leiden clusters share one large UMAP island. A few distant members can pull a hull across much of the map. The territory outlines on the right show where each group concentrates. Four of the 18 groups have no territory at the settings shown.
 
-## Install
-
-To install the local v0.1.1 candidate from its checkout, run:
+## Install v0.1.1
 
 ```r
-install.packages("pak")  # once
-pak::local_install(".")
+install.packages("remotes")  # once
+remotes::install_github("nbatada/ggclusteroutline@v0.1.1", upgrade = "never")
+packageVersion("ggclusteroutline")  # 0.1.1
 ```
 
-With dependencies installed, use the checked v0.1.1 source archive from the directory containing it:
+[Download the tested R source archive and checksum](https://github.com/nbatada/ggclusteroutline/releases/tag/v0.1.1).
 
-```sh
-R CMD INSTALL ggclusteroutline_0.1.1.tar.gz
+## Try it on your own Seurat FeaturePlot
+
+Start with a Seurat object named `object` that already has a UMAP, cluster identities and a gene in its active assay. Set the gene and cluster ID for your data. `FeaturePlot()` carries the active identities in its plot data as `ident`; if you keep your desired assignments in a metadata column, set `Idents(object) <- "leiden"` (or `"seurat_clusters"`) first.
+
+```r
+library(Seurat)
+library(ggplot2)
+library(ggclusteroutline)
+
+gene <- "NKG7"                           # a feature in your active assay
+levels(Idents(object))                   # available cluster IDs
+cluster_id <- "4"                        # choose one of those IDs
+
+p <- FeaturePlot(object, features = gene, reduction = "umap",
+                 combine = FALSE)[[1]] +
+  scale_x_continuous() + scale_y_continuous()  # allow outlines beyond the outermost cells
+
+# One cluster: keep all cells visible, including the neighboring clusters.
+p + geom_cluster_outline(aes(group = ident), clusters = cluster_id,
+                         colour = "black", linewidth = 0.6)
+
+# All clusters with a supported territory: omit the clusters argument.
+p + geom_cluster_outline(aes(group = ident), colour = "black", linewidth = 0.6)
 ```
 
-The previously published source archive is available from the [v0.1.0 release](https://github.com/nbatada/ggclusteroutline/releases/tag/v0.1.0).
+Pass `clusters = c("0", "4")` to highlight several groups. Select groups in the outline layer so it can compare their local densities against the full map. A dispersed cluster can legitimately have no territory.
+
+![Seurat example: Leiden identities beside an NKG7 FeaturePlot with selected cluster outlines in matching colours](man/figures/seurat-featureplot.png)
+
+The example above uses different line styles and the optional `tight` method to show the two islands of PBMC cluster 4. [Complete runnable example, including cluster colours and labels](benchmarks/rc/seurat-featureplot.R).
+
+## How does it compare with ggforce?
+
+The panels use identical coordinates and assignments within each study. The middle panel draws a ggforce concave hull for each Leiden group. The right panel draws its locally dominant territory. Look for outlines that cross a neighboring group's cells.
+
+![33,106 Yost basal cell carcinoma T cells: the same full embedding with Leiden assignments, ggforce hulls and ggclusteroutline territories](research/shared-islands/Yost.png)
+
+| Reading the examples | Members among cells inside the ggforce hull | Members among cells inside the territory | Cluster members retained by the territory |
+|---|---:|---:|---:|
+| NSCLC T/NK · cluster 6 | 23.6% | **66.9%** | 72.1% |
+| Yost BCC T cells · cluster 5 | 7.9% | **67.6%** | 51.8% |
+
+Both hulls enclosed every member of the selected group. The territory sacrifices coverage to show the local concentration. A cell outside its group's outline keeps its original assignment. These full-map comparisons use a 256-node grid per axis, bandwidth of 1.2% of the longer map span and 97% density mass; the quick start uses the package defaults. [NSCLC selected groups](benchmarks/rc/NSCLC-full-map.png) · [Yost selected groups](benchmarks/rc/Yost-full-map.png) · [Benchmark methods and counts](benchmarks/rc/README.md).
 
 ## Choose what the outline should show
 
@@ -61,42 +98,6 @@ dimplot + geom_cluster_outline(aes(group = leiden), clusters = "4")
 
 Using an individual ggplot makes the target panel explicit when Seurat returns multiple plots. The example uses the existing UMAP and cluster assignments.
 
-## Outline and name selected clusters on a Seurat FeaturePlot
-
-Compare the same 700 cells on both UMAPs. The left panel shows their saved Leiden IDs. On the right, point colour shows **NKG7 expression** and each highlighted outline matches its Leiden colour. Cluster 4 has two labelled islands.
-
-![Matched UMAPs of 700 PBMCs. Leiden IDs on the left, NKG7 expression on the right. Cluster 0 has a dotted blue outline, cluster 1 a dashed orange outline, and both islands of cluster 4 have solid teal outlines.](man/figures/seurat-featureplot.png)
-
-For your own Seurat object, set the active identities to the metadata column you want to outline. Use the same named palette in both plots. Set **`linewidth`** for thickness and **`linetype`** for solid, dashed or dotted strokes.
-
-```r
-library(Seurat)
-library(ggplot2)
-library(ggclusteroutline)
-library(patchwork)
-
-Idents(object) <- "leiden"
-pal <- c("0" = "#216197", "1" = "#AD490E", "2" = "#937FB2",
-         "3" = "#92956B", "4" = "#00796B")  # name a colour for each identity
-
-left <- DimPlot(object, reduction = "umap", cols = pal, label = TRUE)
-right <- FeaturePlot(object, features = "NKG7", reduction = "umap",
-                     raster = FALSE, combine = FALSE)[[1]] +
-  scale_x_continuous() + scale_y_continuous()
-
-band <- function(id, line, width) {
-  geom_cluster_outline(aes(group = ident), clusters = id, method = "tight",
-                       colour = pal[[id]], linetype = line, linewidth = width)
-}
-right <- right + band("0", "dotted", 0.8) + band("1", "dashed", 0.7) +
-  band("4", "solid", 0.6)
-right <- LabelClusters(right, id = "ident", clusters = c("0", "1", "4"),
-                       position = "nearest", repel = TRUE)
-left + right
-```
-
-Use `features = "FOXP3"` when the object contains human FOXP3 expression. The short example labels each selected identity once. The [complete figure script](benchmarks/rc/seurat-featureplot.R) uses the bundled data and labels each outlined island separately.
-
 ## Freeze geometry across expression plots
 
 ```r
@@ -126,4 +127,4 @@ attr(regions, "diagnostics")[c("cluster", "input_points", "assigned_points", "ot
 
 The ggforce counts use polygons extracted from actual ggforce renders. Broad hulls can include many cells assigned to other labels. The package's territory classifications differed from CellStyle Python for one Yost cell-by-label decision and zero NSCLC decisions. These comparisons concern visualization on a fixed partition. Linear Cartesian axes are the supported coordinate space. For variable-density embeddings, inspect component count, overlap and omissions before reusing paths.
 
-[Benchmark methods, timings and memory](https://github.com/nbatada/ggclusteroutline/blob/v0.1.0/benchmarks/rc/README.md) · [Full PBMC comparison PDF](https://github.com/nbatada/ggclusteroutline/blob/v0.1.0/benchmarks/rc/pbmc700.pdf) · [Research audit](https://github.com/nbatada/ggclusteroutline/blob/v0.1.0/AUDIT.md) · [MIT license](https://github.com/nbatada/ggclusteroutline/blob/v0.1.0/LICENSE.md)
+[Benchmark methods, timings and memory](https://github.com/nbatada/ggclusteroutline/blob/v0.1.1/benchmarks/rc/README.md) · [Full PBMC comparison PDF](https://github.com/nbatada/ggclusteroutline/blob/v0.1.1/benchmarks/rc/pbmc700.pdf) · [Research audit](https://github.com/nbatada/ggclusteroutline/blob/v0.1.1/AUDIT.md) · [MIT license](https://github.com/nbatada/ggclusteroutline/blob/v0.1.1/LICENSE.md)
