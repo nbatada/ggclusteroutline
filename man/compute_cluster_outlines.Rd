@@ -6,7 +6,7 @@
 \usage{
 compute_cluster_outlines(data, x, y, group, clusters = NULL,
   method = c("territory", "tight", "islands"), bandwidth = NULL, mass = .9,
-  grid_size = 160L, cache = TRUE, component = NULL, facets = NULL)
+  grid_size = 160L, cache = TRUE, component = NULL, facets = NULL, label = FALSE)
 
 clear_outline_cache()
 }
@@ -25,6 +25,7 @@ threshold, strictly between zero and one.}
 \item{grid_size}{Integer from 32 to 512 giving nodes per grid axis.}
 \item{component}{Optional column of supplied spatial component IDs. Supplying it with no method selects tight component hulls. Each component gets its own all-member hull.}
 \item{facets}{Optional character vector of complete facet-key columns. Compute each panel independently and retain its original keys in frozen geometry.}
+\item{label}{Save member-cell label positions with the territory paths for later drawing.}
 \item{cache}{Use the bounded session-local geometry cache. Row reordering can cause
 a cache miss.}
 }

@@ -1,5 +1,0 @@
-# One-line default review · v0.1.1
-
-The [comparison](default-comparison.png) uses the installed local v0.1.1 archive, SHA-256 `c9b121cf1252b81c9b5d77ddd5216b1030dd175b89c9c793d5bdbc47c19005db`. Each row shows the full point table with the same coordinates across panels. All geometry parameters use package defaults. The PBMC example selects Leiden 4. The other rows request all labels. The [script](compare.R) checks both atlas input hashes and records [counts from the built ggplot layers](counts.csv). Paths include point and segment primitives. Independent synthetic cloud, seed 293.
-
-**Decision.** The revised candidate uses territory when the caller omits the method. Strict tight leaves both atlases blank. Islands represents every label but produces overlapping hulls. Territory drew 22/23 Yost and 13/18 NSCLC labels with default settings, and one contour for the compact Gaussian. The published benchmark used a different grid, bandwidth and mass and drew 23/23 and 14/18 territories. [Candidate check](../../release/RELEASE_AUDIT_v0.1.1.md)

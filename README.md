@@ -1,20 +1,22 @@
 # ggclusteroutline
 
-Keep gene expression in colour and show cluster identity with an outline. Add a ggplot2 layer to an existing Seurat UMAP to outline **one cluster or all clusters**. The default draws the regions where each cluster is locally most abundant.
+**Install and load the R package `ggclusteroutline`.** Its ggplot2 layer is `geom_cluster_outline()`. The fully qualified call is `ggclusteroutline::geom_cluster_outline()`.
 
-![622,791 NSCLC T/NK cells on the same UMAP: Leiden assignments, overlapping ggforce hulls and separate ggclusteroutline territories](research/shared-islands/NSCLC.png)
+**One UMAP island can contain many clusters.** When several labels overlap in one cloud, a cluster ID at its median can be hard to match to the cells. ggclusteroutline places each supported ID inside a region where that cluster is locally most abundant. Show the labels alone or add boundaries, and keep point colour available for gene expression.
+
+![622,791 NSCLC T/NK cells on the same UMAP: original Leiden UMAP on the left, ggforce hulls in the middle, and labelled territory outlines over the Leiden-coloured cells on the right](man/figures/nsclc-territories.png)
 
 In this lung cancer dataset, several Leiden clusters share one large UMAP island. A few distant members can pull a hull across much of the map. The territory outlines on the right show where each group concentrates. Four of the 18 groups have no territory at the settings shown.
 
-## Install v0.1.1
+## Install v0.2.0
 
 ```r
 install.packages("remotes")  # once
-remotes::install_github("nbatada/ggclusteroutline@v0.1.1", upgrade = "never")
-packageVersion("ggclusteroutline")  # 0.1.1
+remotes::install_github("nbatada/ggclusteroutline@v0.2.0", upgrade = "never")
+packageVersion("ggclusteroutline")  # 0.2.0
 ```
 
-[Download the tested R source archive and checksum](https://github.com/nbatada/ggclusteroutline/releases/tag/v0.1.1).
+[Download the tested R source archive and checksum](https://github.com/nbatada/ggclusteroutline/releases/tag/v0.2.0).
 
 ## Try it on your own Seurat FeaturePlot
 
@@ -45,20 +47,84 @@ Pass `clusters = c("0", "4")` to highlight several groups. Select groups in the 
 
 ![Seurat example: Leiden identities beside an NKG7 FeaturePlot with selected cluster outlines in matching colours](man/figures/seurat-featureplot.png)
 
-The example above uses different line styles and the optional `tight` method to show the two islands of PBMC cluster 4. [Complete runnable example, including cluster colours and labels](benchmarks/rc/seurat-featureplot.R).
+The example above uses different line styles and the optional `tight` method to show the two islands of PBMC cluster 4.
+
+**Automatic territory labels.** Add `label = TRUE` to print one ID per supported cluster on the FeaturePlot.
+Each label sits on a member cell inside its territory, including when the
+territory spans several islands. You can also save these positions for reuse.
+
+```r
+p + geom_cluster_outline(aes(group = ident), colour = "black", label = TRUE)
+```
+
+### Reposition cluster IDs without drawing outlines
+
+For a Seurat UMAP that normally uses `DimPlot(..., label = TRUE)`, build it
+with `label = FALSE` and let ggclusteroutline draw the IDs once:
+
+```r
+p <- Seurat::DimPlot(object, reduction = "umap", group.by = "leiden",
+                     label = FALSE, combine = FALSE)[[1]]
+p + geom_cluster_outline(aes(group = leiden), label = "only")
+```
+
+Use your cluster metadata column in both places. This option uses
+the same label positions as `label = TRUE`. Each ID sits on an observed member
+cell inside the computed territory. A cluster without an interior member in a
+supported territory stays unlabelled. The cell assignments and colours are preserved.
+
+![The same 622,791-cell NSCLC island with Seurat median labels, territory-based labels alone, and the same labels with boundaries. Follow ID 3 from the crowded centre to its upper-left territory.](man/figures/label-positions.png)
+
+**Follow cluster 3.** Seurat places its median label near several other IDs in the centre. The middle panel moves it onto a cluster-3 cell in the upper-left part of the island. The right panel shows the territory that determined that position. All panels show the same 622,791 cells and all 18 assignments. At the NSCLC benchmark settings, 14 clusters have territories. Groups 4, 8, 10 and 14 remain visible as points and receive no territory label.
+
+## Save UMAP outlines and label positions once
+
+Use `label = TRUE` when **computing** the territories to save their label positions too. Here `object` is your Seurat object and `leiden` is its cluster metadata column. Match cell IDs when combining the embedding and metadata.
+
+```r
+xy <- SeuratObject::Embeddings(object, reduction = "umap")[, 1:2, drop = FALSE]
+cells <- data.frame(x = xy[, 1], y = xy[, 2],
+                    leiden = object[[]][rownames(xy), "leiden"])
+territories <- compute_cluster_outlines(cells, "x", "y", "leiden", label = TRUE)
+saveRDS(territories, "umap-territories.rds")
+```
+
+In a later R session, load `ggclusteroutline` and read the file. On a plot of the same UMAP, choose what to display. All three calls read saved coordinates directly.
+
+```r
+territories <- readRDS("umap-territories.rds")
+p <- Seurat::DimPlot(object, reduction = "umap", group.by = "leiden",
+                     label = FALSE, combine = FALSE)[[1]]
+
+p + geom_cluster_outline(territories, colour = "black")               # outlines
+p + geom_cluster_outline(territories, label = "only")                 # labels
+p + geom_cluster_outline(territories, label = TRUE, colour = "black") # both
+```
+
+You can keep the same object in `object@misc[["ggclusteroutline"]]` when saving your Seurat object. Reuse it when changing the gene or palette. Recompute after changing cells, assignments, UMAP coordinates, facets or geometry settings. Files saved without label positions still draw their original outlines.
 
 ## How does it compare with ggforce?
 
 The panels use identical coordinates and assignments within each study. The middle panel draws a ggforce concave hull for each Leiden group. The right panel draws its locally dominant territory. Look for outlines that cross a neighboring group's cells.
 
-![33,106 Yost basal cell carcinoma T cells: the same full embedding with Leiden assignments, ggforce hulls and ggclusteroutline territories](research/shared-islands/Yost.png)
+![33,106 Yost basal cell carcinoma T cells: the same full embedding with Leiden assignments, ggforce hulls and ggclusteroutline territories](man/figures/yost-territories.png)
 
 | Reading the examples | Members among cells inside the ggforce hull | Members among cells inside the territory | Cluster members retained by the territory |
 |---|---:|---:|---:|
 | NSCLC T/NK · cluster 6 | 23.6% | **66.9%** | 72.1% |
 | Yost BCC T cells · cluster 5 | 7.9% | **67.6%** | 51.8% |
 
-Both hulls enclosed every member of the selected group. The territory sacrifices coverage to show the local concentration. A cell outside its group's outline keeps its original assignment. These full-map comparisons use a 256-node grid per axis, bandwidth of 1.2% of the longer map span and 97% density mass; the quick start uses the package defaults. [NSCLC selected groups](benchmarks/rc/NSCLC-full-map.png) · [Yost selected groups](benchmarks/rc/Yost-full-map.png) · [Benchmark methods and counts](benchmarks/rc/README.md).
+Both hulls enclosed every member of the selected group. The territory sacrifices coverage to show the local concentration. A cell outside its group's outline keeps its original assignment. These full-map comparisons use a 256-node grid per axis, bandwidth of 1.2% of the longer map span and 97% density mass; the quick start uses the package defaults. [NSCLC selected groups](man/figures/nsclc-selected.png) · [Yost selected groups](man/figures/yost-selected.png).
+
+### Two clusters in the same island
+
+**NSCLC.** Follow groups 6 (orange) and 7 (blue) near the bottom of the main island. The ggforce hulls overlap across much of the map. The territory for group 6 encloses 42,229 of its 58,560 members and 20,900 cells from other groups. Its ggforce hull encloses all 58,560 members and 189,534 other cells. [Liu et al., GSE243013](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE243013)
+
+![Full NSCLC UMAP showing Leiden groups 6 and 7, their overlapping ggforce hulls and their neighbouring territories.](man/figures/nsclc-selected.png)
+
+**Yost basal cell carcinoma.** Follow group 10 (blue) on the authors’ T-cell UMAP. Its territory has five rings enclosing 939 of 1,505 members and 474 other cells. Its ggforce hull spans most of the map, enclosing all 1,505 members and 22,528 other cells. Both studies use benchmark-derived Leiden IDs. [Yost et al., GSE123813](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE123813)
+
+![Full Yost T-cell UMAP showing groups 5 and 10, broad overlapping ggforce hulls and separate concentrations outlined by ggclusteroutline.](man/figures/yost-selected.png)
 
 ## Choose what the outline should show
 
@@ -98,16 +164,12 @@ dimplot + geom_cluster_outline(aes(group = leiden), clusters = "4")
 
 Using an individual ggplot makes the target panel explicit when Seurat returns multiple plots. The example uses the existing UMAP and cluster assignments.
 
-## Freeze geometry across expression plots
+If an outline crosses a cluster label, start with the unlabelled `dimplot` above and add boxed labels last so they cover the line where they overlap.
 
 ```r
-bands <- compute_cluster_outlines(cells, "x", "y", "leiden", clusters = 4)
-attr(bands, "diagnostics")
-saveRDS(bands, "leiden-4.rds")
-p + geom_cluster_outline(data = readRDS("leiden-4.rds"), colour = "black")
+outlined <- dimplot + geom_cluster_outline(aes(group = leiden), clusters = "4")
+Seurat::LabelClusters(outlined, id = "leiden", box = TRUE)
 ```
-
-The saved `vertex` numbers preserve path order after sorting or joining rows. Use frozen paths only for their originating embedding, membership and facet definition. New objects store geometry input column names, an order-sensitive input fingerprint, coordinate space and software versions in `attr(bands, "provenance")`. Compare fingerprints to check source identity when reusing saved results. For example, pass `facets = "sample"` when precomputing geometry for independent sample panels. The automatic in-session cache hashes coordinates, labels, selection, mode and geometry parameters. A new marker colour reuses geometry. Changing a competitor or coordinate invalidates that panel. Row reordering can miss the cache. The cache holds at most 16 results and 16 MiB of estimated geometry, with least-recently-used eviction. Use `cache = FALSE` for cold measurements or `clear_outline_cache()` to release its entries.
 
 ## Evidence and limitations
 
@@ -126,5 +188,3 @@ attr(regions, "diagnostics")[c("cluster", "input_points", "assigned_points", "ot
 ```
 
 The ggforce counts use polygons extracted from actual ggforce renders. Broad hulls can include many cells assigned to other labels. The package's territory classifications differed from CellStyle Python for one Yost cell-by-label decision and zero NSCLC decisions. These comparisons concern visualization on a fixed partition. Linear Cartesian axes are the supported coordinate space. For variable-density embeddings, inspect component count, overlap and omissions before reusing paths.
-
-[Benchmark methods, timings and memory](https://github.com/nbatada/ggclusteroutline/blob/v0.1.1/benchmarks/rc/README.md) · [Full PBMC comparison PDF](https://github.com/nbatada/ggclusteroutline/blob/v0.1.1/benchmarks/rc/pbmc700.pdf) · [Research audit](https://github.com/nbatada/ggclusteroutline/blob/v0.1.1/AUDIT.md) · [MIT license](https://github.com/nbatada/ggclusteroutline/blob/v0.1.1/LICENSE.md)

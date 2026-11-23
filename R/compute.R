@@ -29,9 +29,11 @@ cache_result <- function(key, value) {
 compute_cluster_outlines <- function(data, x, y, group, clusters = NULL,
                                      method = c("territory", "tight", "islands"),
                                      bandwidth = NULL, mass = .9, grid_size = 160L,
-                                     cache = TRUE, component = NULL, facets = NULL) {
+                                     cache = TRUE, component = NULL, facets = NULL, label = FALSE) {
   if (missing(method) && !is.null(component)) method <- "tight"
   method <- match.arg(method)
+  if (!identical(label, TRUE) && !identical(label, FALSE)) stop("label must be TRUE or FALSE.", call. = FALSE)
+  if (label && method != "territory") stop("Labels require territory geometry.", call. = FALSE)
   fields <- list(x, y, group)
   valid_field <- function(s) is.character(s) && length(s) == 1L &&
     !is.na(s) && nzchar(s) && sum(names(data) == s) == 1L
@@ -95,16 +97,20 @@ compute_cluster_outlines <- function(data, x, y, group, clusters = NULL,
     # Integer keys prevent collisions when original strings contain separators.
     keys <- lapply(facet_data,function(v) match(v,unique(v)))
     panel <- do.call(interaction,c(unname(as.list(keys)),list(drop=TRUE)))
-    paths <- diagnostics <- settings <- list()
+    paths <- diagnostics <- settings <- anchors <- list()
     for (index in split(seq_along(panel),panel)) {
       wanted <- intersect(clusters,labels[index])
       if (!length(wanted)) next
       part <- compute_cluster_outlines(data[index,,drop=FALSE],x,y,group,wanted,
-                                       method,bandwidth,mass,grid_size,cache,component)
+                                       method,bandwidth,mass,grid_size,cache,component,label=label)
       info <- attr(part,"diagnostics")
       key <- facet_data[index[1L],,drop=FALSE]
       diagnostics[[length(diagnostics)+1L]] <- cbind(info,key[rep(1L,nrow(info)),,drop=FALSE])
       settings[[length(settings)+1L]] <- list(keys=key,settings=attr(part,"settings"))
+      if (label) {
+        a <- attr(part, "label_positions")
+        anchors[[length(anchors)+1L]] <- cbind(a, key[rep(1L, nrow(a)), , drop=FALSE])
+      }
       paths[[length(paths)+1L]] <- cbind(as.data.frame(part),key[rep(1L,nrow(part)),,drop=FALSE])
     }
     result <- do.call(rbind,paths)
@@ -112,12 +118,13 @@ compute_cluster_outlines <- function(data, x, y, group, clusters = NULL,
     attr(result,"diagnostics") <- do.call(rbind,diagnostics)
     attr(result,"settings") <- settings
     attr(result,"provenance") <- provenance
+    if (label) attr(result,"label_positions") <- do.call(rbind, anchors)
     attr(result,"facet_keys") <- facets
     attr(result,"method") <- method
     return(result)
   }
   if (cache) {
-    key <- digest::digest(list(provenance,clusters,method,bandwidth,mass,grid_size),
+    key <- digest::digest(list(provenance,clusters,method,bandwidth,mass,grid_size,label),
                           algo = "sha256")
     if (exists(key, envir = .outline_cache, inherits = FALSE)) {
       .outline_cache$order <- c(.outline_cache$order[.outline_cache$order != key], key)
@@ -150,6 +157,11 @@ compute_cluster_outlines <- function(data, x, y, group, clusters = NULL,
   class(result) <- c("cluster_outlines", "data.frame")
   attr(result,"method") <- method
   attr(result,"provenance") <- provenance
+  if (label) {
+    anchors <- territory_label_rows(result, data.frame(x=xx, y=yy, cluster_key=labels))
+    if (is.null(anchors)) anchors <- result[0L, , drop=FALSE]
+    attr(result, "label_positions") <- as.data.frame(anchors)[c("cluster","path","x","y")]
+  }
   if (cache) cache_result(key, result)
   report_outline_status(result)
 }

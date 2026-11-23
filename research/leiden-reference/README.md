@@ -1,9 +1,0 @@
-# M0/leiden-reference · revision 1
-
-The PBMC3k object used in the previous figure stores annotated Louvain groups. For this comparison we used the existing CellStyle PBMC68k reduced example, which records numeric Leiden assignments for all 700 barcodes alongside the original UMAP and stored NKG7 expression. The previous analysis ran Leiden on the stored weighted connectivity graph (igraph, resolution 0.1, seed 17, two iterations). This figure reads the saved assignments. Cluster 4 was chosen because its 48 members occupy two visible islands; this case does not measure how often that occurs. [Scanpy dataset](https://scanpy.scverse.org/en/stable/generated/scanpy.datasets.pbmc68k_reduced.html)
-
-Source table and metadata were copied from ~/git/cellstyle/design_evidence/leiden-outlines/. The script verifies the recorded table SHA-256, takes every row with leiden == 4, and passes only cell ID and UMAP coordinates to the geometry layers. Both orange islands receive the same numeric label in the reference. Marker values control the point colour in the other four columns. The second row zooms each panel. KDE uses a 95% estimated-mass level and a 160 × 160 grid over the padded full embedding range. Run Rscript --vanilla research/leiden-reference/plot.R from the repo root with the M0 plotting libraries available.
-
-## Tight-band membership check
-
-[Tight bands PDF](tight-bands.pdf) compares the saved membership with convex hulls touching the outermost cell centres. Run `Rscript --vanilla research/leiden-reference/tight-bands.R` from the repo root. The two-band illustration manually splits only the selected cluster's geometry inputs at UMAP x = 3, inside the visible gap. Both islands retain Leiden ID 4. Both alternatives enclose 48 members and zero other cell centres. Their areas are 6.222 and 1.579 squared UMAP units. Asset M0/leiden-reference/tight-bands, revision 1.

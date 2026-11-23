@@ -8,7 +8,7 @@ geom_cluster_outline(mapping = NULL, data = NULL, clusters = NULL,
   grid_size = 160L, cache = TRUE, ..., colour = "#C23B22", linewidth = 0.5,
   linetype = 1, alpha = NA, size = 1.5, shape = 16, stroke = 0.5,
   na.rm = FALSE, show.legend = NA,
-  inherit.aes = TRUE, replicate = FALSE)
+  inherit.aes = TRUE, replicate = FALSE, label = FALSE)
 }
 \arguments{
 \item{mapping}{Aesthetic mapping. Supply \code{aes(group = cluster_id)} with
@@ -18,6 +18,8 @@ The point layer may map gene expression to colour.}
 \item{clusters}{Optional original cluster IDs. Default draws all eligible groups.}
 \item{method,bandwidth,mass,grid_size,cache}{Geometry controls documented in
 \code{\link{compute_cluster_outlines}}.}
+\item{label}{Use \code{TRUE} for outlines with labels or \code{"only"} for labels alone. Draw one boxed cluster ID per panel for each selected territory
+with a member cell strictly inside it. Use live cell data or territory paths computed with \code{label = TRUE}. Defaults to \code{FALSE}.}
 \item{replicate}{Allow a separately supplied data table without all facet-key
 columns to repeat in every facet. Defaults to \code{FALSE}; otherwise, a
 faceted plot requires the complete facet keys in that table.}

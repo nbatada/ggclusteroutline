@@ -1,3 +1,9 @@
+# ggclusteroutline 0.2.0
+
+- Save label positions with `compute_cluster_outlines(..., label = TRUE)` and redraw them directly from an RDS file.
+
+- Add `label = TRUE` for automatic cluster IDs inside live territory outlines. Use `label = "only"` to draw those IDs alone.
+
 # ggclusteroutline 0.1.1
 
 - Computed outlines check facet keys on separate layer data. Intentional replication requires an explicit opt-in.

@@ -52,11 +52,60 @@ StatFrozenClusterOutline <- ggplot2::ggproto(
   }
 )
 
+# Place one ID on an observed member, away from the edges of its territory.
+territory_label_rows <- function(outlines, data) {
+  members <- split(seq_len(nrow(data)), as.character(data$cluster_key))
+  anchors <- lapply(split(seq_len(nrow(outlines)), outlines$cluster), function(rows) {
+    paths <- outlines[rows, , drop = FALSE]
+    id <- paths$cluster[1L]
+    candidates <- data[members[[id]], c("x", "y"), drop = FALSE]
+    rings <- split(paths, paths$path)
+    inside <- logical(nrow(candidates))
+    boundary <- logical(nrow(candidates))
+    for (ring in rings) {
+      hit <- sp::point.in.polygon(candidates$x, candidates$y, ring$x, ring$y)
+      inside <- xor(inside, hit == 1L)
+      boundary <- boundary | hit > 1L
+    }
+    candidates <- candidates[inside & !boundary, , drop = FALSE]
+    if (!nrow(candidates)) {
+      warning("No member strictly inside territory for label ", id, ".", call. = FALSE)
+      return(NULL)
+    }
+
+    # Bound distance calculations and keep the sample stable under row reordering.
+    candidates <- candidates[order(candidates$x, candidates$y), , drop = FALSE]
+    sample_rows <- round(seq(1L, nrow(candidates), length.out = min(500L, nrow(candidates))))
+    candidates <- candidates[sample_rows, , drop = FALSE]
+    clearance <- rep(Inf, nrow(candidates))
+    for (ring in rings) {
+      for (i in seq_len(nrow(ring) - 1L)) {
+        dx <- ring$x[i + 1L] - ring$x[i]
+        dy <- ring$y[i + 1L] - ring$y[i]
+        if (dx == 0 && dy == 0) next
+        x <- candidates$x - ring$x[i]
+        y <- candidates$y - ring$y[i]
+        t <- pmax(0, pmin(1, (x * dx + y * dy) / (dx^2 + dy^2)))
+        clearance <- pmin(clearance, (x - t * dx)^2 + (y - t * dy)^2)
+      }
+    }
+    position <- candidates[which.max(clearance), , drop = FALSE]
+    containing <- vapply(rings, function(r) {
+      sp::point.in.polygon(position$x, position$y, r$x, r$y) == 1L
+    }, logical(1))
+    anchor <- rings[[which(containing)[1L]]][1L, , drop = FALSE]
+    anchor[c("x", "y")] <- position
+    anchor$outline_type <- "label"
+    anchor
+  })
+  do.call(rbind, anchors)
+}
+
 StatClusterOutline <- ggplot2::ggproto(
   "StatClusterOutline",
   ggplot2::Stat,
   required_aes = "group",
-  extra_params = c("na.rm", "clusters", "method", "bandwidth", "mass", "grid_size", "cache", "replicate", "source_columns"),
+  extra_params = c("na.rm", "clusters", "method", "bandwidth", "mass", "grid_size", "cache", "replicate", "source_columns", "draw_labels"),
   compute_layer = function(self, data, params, layout) {
     if (!isTRUE(params$replicate)) {
       # ggplot resolved all layers' data before forming panels. A variable
@@ -114,7 +163,7 @@ StatClusterOutline <- ggplot2::ggproto(
   },
   compute_panel = function(data, scales, clusters = NULL, method = "territory",
                            bandwidth = NULL, mass = 0.9, grid_size = 160L,
-                           cache = TRUE, na.rm = FALSE) {
+                           cache = TRUE, na.rm = FALSE, draw_labels = FALSE) {
     if (!identical(scales$x$trans$name, "identity") || !identical(scales$y$trans$name, "identity")) {
       stop("geom_cluster_outline() supports untransformed Cartesian scales only.", call. = FALSE)
     }
@@ -139,13 +188,21 @@ StatClusterOutline <- ggplot2::ggproto(
       bandwidth = bandwidth,
       mass = mass,
       grid_size = grid_size,
-      cache = cache
+      cache = cache, label = !identical(draw_labels, FALSE)
     )
     if (nrow(outlines) == 0L) return(outlines)
 
     outlines$group <- as.integer(interaction(outlines$cluster, outlines$path, drop = TRUE))
     outlines$outline_type <- outlines$type
-    outlines$PANEL <- data$PANEL[[1L]]
+    if (!identical(draw_labels, FALSE)) {
+      saved <- attr(outlines, "label_positions")
+      anchors <- outlines[match(saved$cluster, outlines$cluster), , drop = FALSE]
+      anchors[c("x", "y", "path")] <- saved[c("x", "y", "path")]
+      anchors$outline_type <- rep("label", nrow(saved))
+      if (identical(draw_labels, "only")) outlines <- outlines[0L, , drop = FALSE]
+      outlines <- rbind(outlines, anchors)
+    }
+    outlines$PANEL <- rep(data$PANEL[[1L]], nrow(outlines))
     outlines
   }
 )
@@ -169,7 +226,7 @@ GeomClusterOutline <- ggplot2::ggproto(
 
     type <- if ("outline_type" %in% names(data)) data$outline_type else data$type
     points <- data[type == "point", , drop = FALSE]
-    paths <- data[type != "point", , drop = FALSE]
+    paths <- data[type %in% c("segment", "polygon"), , drop = FALSE]
     grobs <- list()
     if (nrow(paths) > 0L) {
       grobs[[length(grobs) + 1L]] <- ggplot2::GeomPath$draw_panel(
@@ -180,6 +237,17 @@ GeomClusterOutline <- ggplot2::ggproto(
       if (!"fill" %in% names(points)) points$fill <- NA_character_
       grobs[[length(grobs) + 1L]] <- ggplot2::GeomPoint$draw_panel(
         points, panel_params, coord, na.rm = na.rm
+      )
+    }
+    labels <- data[type == "label", , drop = FALSE]
+    if (nrow(labels)) {
+      if ("cluster" %in% names(labels)) labels$label <- labels$cluster
+      labels <- transform(labels, size = 2.8, colour = "#222222",
+                          fill = "white", linewidth = 0.25, linetype = 1, alpha = 1,
+                          family = "", fontface = 1, lineheight = 1, angle = 0,
+                          hjust = 0.5, vjust = 0.5)
+      grobs[[length(grobs) + 1L]] <- ggplot2::GeomLabel$draw_panel(
+        labels, panel_params, coord, label.padding = grid::unit(.08, "lines")
       )
     }
     do.call(grid::grobTree, grobs)
@@ -205,13 +273,19 @@ geom_cluster_outline <- function(mapping = NULL, data = NULL, clusters = NULL,
                                  linetype = 1, alpha = NA, size = 1.5,
                                  shape = 16, stroke = 0.5,
                                  na.rm = FALSE, show.legend = NA,
-                                 inherit.aes = TRUE, replicate = FALSE) {
+                                 inherit.aes = TRUE, replicate = FALSE, label = FALSE) {
   frozen_geometry_args <- !missing(method) || !missing(bandwidth) || !missing(mass) ||
     !missing(grid_size) || !missing(cache)
   method <- match.arg(method)
   if (inherits(mapping, "cluster_outlines") && is.null(data)) {
     data <- mapping
     mapping <- NULL
+  }
+  if (!(identical(label, FALSE) || identical(label, TRUE) || identical(label, "only"))) {
+    stop('label must be FALSE, TRUE, or "only".', call. = FALSE)
+  }
+  if (!identical(label, FALSE) && method != "territory") {
+    stop("Territory labels need live cell coordinates and method = 'territory'.", call. = FALSE)
   }
   if (inherits(data, "cluster_outlines")) {
     if (frozen_geometry_args) {
@@ -262,11 +336,22 @@ geom_cluster_outline <- function(mapping = NULL, data = NULL, clusters = NULL,
       ordering <- do.call(order, c(unname(frozen[path_keys]), list(frozen$vertex, method = "radix")))
       frozen <- frozen[ordering, , drop = FALSE]
     }
+    if (!identical(label, FALSE)) {
+      anchors <- attr(data, "label_positions")
+      if (is.null(anchors)) stop("Recompute once with compute_cluster_outlines(..., label = TRUE) to save label positions.", call.=FALSE)
+      keys <- c(frozen_facet_keys, "cluster", "path")
+      anchors <- merge(anchors, unique(frozen[keys]), by=keys, sort=FALSE)
+      frozen <- frozen[c(keys, "x", "y", "type")]
+      anchors$type <- rep("label", nrow(anchors))
+      if (identical(label, "only")) frozen <- frozen[0L, , drop=FALSE]
+      frozen <- rbind(frozen, anchors[names(frozen)])
+    }
     frozen$.outline_draw_group <- interaction(frozen$cluster, frozen$path, drop = TRUE)
     frozen_mapping <- ggplot2::aes(
       x = .data$x, y = .data$y,
       group = .data$.outline_draw_group, outline_type = .data$type
     )
+    if (!identical(label, FALSE)) frozen_mapping$label <- ggplot2::aes(label=.data$cluster)$label
     layer <- ggplot2::layer(
       data = frozen,
       mapping = frozen_mapping,
@@ -310,6 +395,7 @@ geom_cluster_outline <- function(mapping = NULL, data = NULL, clusters = NULL,
       grid_size = grid_size,
       cache = cache,
       replicate = replicate,
+      draw_labels = label,
       colour = colour,
       linewidth = linewidth,
       linetype = linetype,

@@ -1,5 +1,0 @@
-# M0 benchmark design
-Synthetic distributions: disk, ellipse, crescent, annulus/hole, dumbbell, two islands same label, adjacent clusters, overlapping labels, long tail, extreme outliers, rare groups (1/2/3 points), duplicates, collinear, unequal densities, anisotropic coordinates, many groups, missing values.
-Real data: use only public permissively licensed dataset or user-authorized data; record provenance, embeddings and labels. Do not use private PRMT5 data without explicit authorization.
-Render side-by-side under identical coordinates, color, alpha, dimensions and device. Compare ggforce, ggalt, ggdensity, convex hull and candidate alternatives. Track visual errors, disconnected component behavior, empty-space capture, stability under 5–10% point removal, runtimes and peak memory. Include evidence that existing tools are sufficient when true.
-Store figure source, dataset generation seed, package versions, machine, raw measurements, PNG/SVG and design judgments. Compare methods first, do not tune against one example alone.
