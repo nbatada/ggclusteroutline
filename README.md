@@ -18,6 +18,12 @@ packageVersion("ggclusteroutline")  # 0.2.1
 
 This command installs the checked package commit that includes `assess_territories()`.
 
+If you use a coding assistant, paste this prompt:
+
+```text
+Install the ggclusteroutline R package using the install command in https://github.com/nbatada/ggclusteroutline#install-the-version-with-territory-assessment and confirm that library(ggclusteroutline) loads.
+```
+
 ## Try it on your own Seurat FeaturePlot
 
 Start with a Seurat object named `object` that already has a UMAP, cluster identities and a gene in its active assay. Set the gene and cluster ID for your data. `FeaturePlot()` carries the active identities in its plot data as `ident`; if you keep your desired assignments in a metadata column, set `Idents(object) <- "leiden"` (or `"seurat_clusters"`) first.
