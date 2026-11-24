@@ -1,3 +1,7 @@
+# ggclusteroutline 0.2.1
+
+- Measure territory purity and coverage and flag cells inside another group's territory with `assess_territories()`. Original cluster assignments are preserved.
+
 # ggclusteroutline 0.2.0
 
 - Save label positions with `compute_cluster_outlines(..., label = TRUE)` and redraw them directly from an RDS file.

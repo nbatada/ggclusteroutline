@@ -2,21 +2,21 @@
 
 **Install and load the R package `ggclusteroutline`.** Its ggplot2 layer is `geom_cluster_outline()`. The fully qualified call is `ggclusteroutline::geom_cluster_outline()`.
 
-**One UMAP island can contain many clusters.** When several labels overlap in one cloud, a cluster ID at its median can be hard to match to the cells. ggclusteroutline places each supported ID inside a region where that cluster is locally most abundant. Show the labels alone or add boundaries, and keep point colour available for gene expression.
+**Place cluster labels on a crowded UMAP.** One UMAP island can contain many clusters. When several labels overlap in one cloud, a cluster ID at its median can be hard to match to the cells. ggclusteroutline places each supported ID inside a region where that cluster is locally most abundant. Show the labels alone or add boundaries, and keep point colour available for gene expression.
 
 ![622,791 NSCLC T/NK cells on the same UMAP: original Leiden UMAP on the left, ggforce hulls in the middle, and labelled territory outlines over the Leiden-coloured cells on the right](man/figures/nsclc-territories.png)
 
 In this lung cancer dataset, several Leiden clusters share one large UMAP island. A few distant members can pull a hull across much of the map. The territory outlines on the right show where each group concentrates. Four of the 18 groups have no territory at the settings shown.
 
-## Install v0.2.0
+## Install v0.2.1
 
 ```r
 install.packages("remotes")  # once
-remotes::install_github("nbatada/ggclusteroutline@v0.2.0", upgrade = "never")
-packageVersion("ggclusteroutline")  # 0.2.0
+remotes::install_github("nbatada/ggclusteroutline@v0.2.1", upgrade = "never")
+packageVersion("ggclusteroutline")  # 0.2.1
 ```
 
-[Download the tested R source archive and checksum](https://github.com/nbatada/ggclusteroutline/releases/tag/v0.2.0).
+[Download the tested R source archive and checksum](https://github.com/nbatada/ggclusteroutline/releases/tag/v0.2.1).
 
 ## Try it on your own Seurat FeaturePlot
 
@@ -77,6 +77,38 @@ supported territory stays unlabelled. The cell assignments and colours are prese
 
 **Follow cluster 3.** Seurat places its median label near several other IDs in the centre. The middle panel moves it onto a cluster-3 cell in the upper-left part of the island. The right panel shows the territory that determined that position. All panels show the same 622,791 cells and all 18 assignments. At the NSCLC benchmark settings, 14 clusters have territories. Groups 4, 8, 10 and 14 remain visible as points and receive no territory label.
 
+### How representative is each label position?
+
+The outline is a visual cue for where the group concentrates on this UMAP. When members are spread out, the label can mark a small pocket while most members lie elsewhere. The original Leiden ID remains the assignment for each cell.
+
+- **Purity** asks what percentage of cell centres inside the territory carry its Leiden ID.
+- **Coverage** asks what percentage of all cells carrying that Leiden ID fall inside its territory.
+
+For cluster 3, 83.7% of the enclosed cells carry ID 3, yet the outline covers only 10.6% of its members. Cluster 7 has substantial mixing even inside its outline. These percentages describe the plotted regions at the illustrated benchmark settings.
+
+| NSCLC Leiden ID | Purity | Coverage |
+|---|---:|---:|
+| 0 | 69% | 62.1% |
+| 1 | 66.9% | 83.7% |
+| 2 | 51.5% | 48.5% |
+| 3 | 83.7% | 10.6% |
+| 4 | — | 0% |
+| 5 | 74.4% | 62.1% |
+| 6 | 66.9% | 72.1% |
+| 7 | 49% | 39.3% |
+| 8 | — | 0% |
+| 9 | 55.9% | 88.4% |
+| 10 | — | 0% |
+| 11 | 74.7% | 71.1% |
+| 12 | 71% | 49.5% |
+| 13 | 64.2% | 86% |
+| 14 | — | 0% |
+| 15 | 93.7% | 89.7% |
+| 16 | 89.2% | 2.6% |
+| 17 | 89.3% | 86.4% |
+
+A dash indicates no enclosed cells. Across all 622,791 cells, 395,316 fell inside their own territory, 193,288 inside another group's territory, and 34,187 outside every territory. A flag identifies a cell for inspection. It does not establish that its Leiden assignment is wrong.
+
 ## Save UMAP outlines and label positions once
 
 Use `label = TRUE` when **computing** the territories to save their label positions too. Here `object` is your Seurat object and `leiden` is its cluster metadata column. Match cell IDs when combining the embedding and metadata.
@@ -84,7 +116,7 @@ Use `label = TRUE` when **computing** the territories to save their label positi
 ```r
 xy <- SeuratObject::Embeddings(object, reduction = "umap")[, 1:2, drop = FALSE]
 cells <- data.frame(x = xy[, 1], y = xy[, 2],
-                    leiden = object[[]][rownames(xy), "leiden"])
+                    leiden = object[[]][rownames(xy), "leiden"], row.names = rownames(xy))
 territories <- compute_cluster_outlines(cells, "x", "y", "leiden", label = TRUE)
 saveRDS(territories, "umap-territories.rds")
 ```
@@ -102,6 +134,27 @@ p + geom_cluster_outline(territories, label = TRUE, colour = "black") # both
 ```
 
 You can keep the same object in `object@misc[["ggclusteroutline"]]` when saving your Seurat object. Reuse it when changing the gene or palette. Recompute after changing cells, assignments, UMAP coordinates, facets or geometry settings. Files saved without label positions still draw their original outlines.
+
+## Check your own clusters and flag cells for review
+
+Use the full `cells` table and `territories` object from the example above. Compute all groups to check all possible territories. Use the same settings you used to draw the figure.
+
+```r
+agreement <- assess_territories(cells, territories)
+agreement$summary[c("cluster", "input_points", "assigned_points", "other_points",
+                    "purity_pct", "coverage_pct")]
+
+# Original cluster ID, containing territory and flag for each cell
+flags <- agreement$cells
+head(flags[flags$in_other_territory, ])
+
+# Add the flag as a separate Seurat metadata column, matched by cell ID.
+# Cells absent from this UMAP receive NA.
+object$in_other_territory <- flags$in_other_territory[match(colnames(object), rownames(flags))]
+```
+
+A cell outside every assessed territory has `n_territories = 0` and a false flag.
+The function leaves the supplied Leiden column and active identities intact.
 
 ## How does it compare with ggforce?
 
