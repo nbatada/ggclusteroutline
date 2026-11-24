@@ -8,15 +8,15 @@
 
 In this lung cancer dataset, several Leiden clusters share one large UMAP island. A few distant members can pull a hull across much of the map. The territory outlines on the right show where each group concentrates. Four of the 18 groups have no territory at the settings shown.
 
-## Install v0.2.1
+## Install the version with territory assessment
 
 ```r
 install.packages("remotes")  # once
-remotes::install_github("nbatada/ggclusteroutline@v0.2.1", upgrade = "never")
+remotes::install_github("nbatada/ggclusteroutline@dbc4919cca5c19665fa22dafdb2b103314c8ef94", upgrade = "never")
 packageVersion("ggclusteroutline")  # 0.2.1
 ```
 
-[Download the tested R source archive and checksum](https://github.com/nbatada/ggclusteroutline/releases/tag/v0.2.1).
+This command installs the checked package commit that includes `assess_territories()`.
 
 ## Try it on your own Seurat FeaturePlot
 
